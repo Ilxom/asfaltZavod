@@ -1,2 +1,2 @@
-# namangan_avto
-Namangan avto tarozi
+# avto_weight
+Universal auto weight scaling application
