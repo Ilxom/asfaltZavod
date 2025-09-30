@@ -87,7 +87,9 @@ public class MainForm extends BaseForm {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent e) {
-                playHandles.forEach(RealPlayModule::stopRealPlay);
+                if (camera1IsEnabled || camera2IsEnabled) {
+                    playHandles.forEach(RealPlayModule::stopRealPlay);
+                }
             }
         });
     }
