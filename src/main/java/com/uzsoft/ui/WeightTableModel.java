@@ -69,10 +69,13 @@ public class WeightTableModel extends AbstractTableModel {
         if (columnIndex == 12) {
             System.out.println(aValue);
             WeightTO value = this.data.get(rowIndex);
-            if ("export".equals(aValue)) {
+            if ("exportToWord".equals(aValue)) {
                 log.info("Export to WORD");
                 Utils.exportToWord(value.getId());
-            } else {
+            } else if ("exportToExcel".equals(aValue)) {
+                log.info("Export to Excel");
+                Utils.exportToExcel(value.getId());
+            } else if ("remove".equals(aValue)) {
                 log.info("Remove row");
                 this.remove(value);
             }

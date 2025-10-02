@@ -51,7 +51,7 @@ public class LoginForm extends JFrame {
         loginBox = createTextBox(loginPanel, gridBagLayout, gbc, 1, 0, "loginBox");
 
         JLabel passwordLabel = createLabel(loginPanel, gridBagLayout, gbc, Res.string().getPassword(), 0, 1, SwingConstants.LEFT, false, null);
-        passwordBox = new JPasswordField(Res.string().getPassword());
+        passwordBox = new JPasswordField();
         createWidget(loginPanel, gridBagLayout, gbc, passwordBox, 1, 1);
 
         JLabel languageLabel = createLabel(loginPanel, gridBagLayout, gbc, Res.string().getLanguage(), 0, 2, SwingConstants.LEFT, false, null);

@@ -448,8 +448,9 @@ public class MainForm extends BaseForm {
                 if (bytes != null) {
                     String inputLine = new String(bytes, StandardCharsets.UTF_8);
                     if (!inputLine.trim().isEmpty()) {
-                        weightLabel.setText(String.valueOf(clearString(inputLine)));
-                        sumWeight = clearString(inputLine);
+                        Integer clearedString = clearString(inputLine);
+                        weightLabel.setText(String.valueOf(clearedString));
+                        sumWeight = clearedString;
                     }
                 }
             } catch (Exception var4) {
@@ -460,6 +461,8 @@ public class MainForm extends BaseForm {
     }
 
     private Integer clearString(String inputLine) {
+        inputLine = inputLine.replaceAll("\\+", "").substring(0, 7);
+        System.out.println(inputLine);
         Pattern pattern = Pattern.compile("[-+]?([0-9]*\\.[0-9]+|[0-9]+)");
         Matcher m = pattern.matcher(inputLine);
         return m.find() ? Integer.parseInt(m.group()) : 0;

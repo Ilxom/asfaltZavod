@@ -165,8 +165,8 @@ public class ReportForm extends BaseForm {
         this.reportTable.setRowHeight(30);
         this.reportTable.getColumnModel().getColumn(12).setCellRenderer(new ButtonsCellRenderer());
         this.reportTable.getColumnModel().getColumn(12).setCellEditor(new ButtonsCellEditor());
-        this.reportTable.getColumnModel().getColumn(12).setPreferredWidth(160);
-        this.reportTable.getColumnModel().getColumn(12).setMaxWidth(160);
+        this.reportTable.getColumnModel().getColumn(12).setPreferredWidth(220);
+        this.reportTable.getColumnModel().getColumn(12).setMaxWidth(220);
     }
 
     @Override
