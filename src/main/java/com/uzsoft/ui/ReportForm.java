@@ -1,12 +1,8 @@
 package com.uzsoft.ui;
 
 import com.uzsoft.dto.WeightTO;
-import com.uzsoft.utils.Utils;
 import com.uzsoft.utils.Res;
-import org.apache.poi.ss.usermodel.BorderStyle;
-import org.apache.poi.ss.usermodel.HorizontalAlignment;
-import org.apache.poi.ss.usermodel.IndexedColors;
-import org.apache.poi.xssf.usermodel.*;
+import com.uzsoft.utils.Utils;
 import org.jdatepicker.impl.DateComponentFormatter;
 import org.jdatepicker.impl.JDatePanelImpl;
 import org.jdatepicker.impl.JDatePickerImpl;
@@ -16,15 +12,10 @@ import javax.swing.*;
 import javax.swing.border.BevelBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -35,14 +26,13 @@ public class ReportForm extends BaseForm {
     private JPanel topToolBox;
     private String startDate;
     private String endDate;
-    private SimpleDateFormat dateFormat4;
     private JDatePickerImpl datePicker1;
     private JDatePickerImpl datePicker2;
 
     public ReportForm() {
         super(new String[]{"№", Res.string().getDirection(), Res.string().getCarNumber(), Res.string().getCarModel(), Res.string().getProductName(),
                 Res.string().getGross(), Res.string().getTare(), Res.string().getNet(), Res.string().getSender(),
-                Res.string().getReceiver(), Res.string().getOperator(), Res.string().getTime(), Res.string().getAction()});
+                Res.string().getReceiver(), Res.string().getCarDriver(), Res.string().getOperator(), Res.string().getTime(), Res.string().getAction()});
     }
 
     @Override
@@ -53,10 +43,9 @@ public class ReportForm extends BaseForm {
 
         createTopToolBox();
         createReportPanel();
-        this.dateFormat4 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         setTitle(Res.string().getReport());
-        setPreferredSize(new Dimension(900, 600));
-        setMinimumSize(new Dimension(900, 600));
+        setPreferredSize(new Dimension(1200, 1000));
+        setMinimumSize(new Dimension(1200, 1000));
         setLocationRelativeTo(null);
         setVisible(true);
         setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
@@ -76,10 +65,10 @@ public class ReportForm extends BaseForm {
         properties.setProperty("text.clear", Res.localize("CLEAR"));
 
         JDatePanelImpl datePanel1 = new JDatePanelImpl(new UtilDateModel(new Date()), properties);
-        this.datePicker1 = new JDatePickerImpl(datePanel1, new DateComponentFormatter());
+        datePicker1 = new JDatePickerImpl(datePanel1, new DateComponentFormatter());
 
         JDatePanelImpl datePanel2 = new JDatePanelImpl(new UtilDateModel(new Date()), properties);
-        this.datePicker2 = new JDatePickerImpl(datePanel2, new DateComponentFormatter());
+        datePicker2 = new JDatePickerImpl(datePanel2, new DateComponentFormatter());
 
         gbc.fill = 2;
         gbc.gridx = 0;
@@ -106,7 +95,13 @@ public class ReportForm extends BaseForm {
         this.topToolBox.add(okButton, gbc);
         Button excelButton = new Button("Excel");
         excelButton.addActionListener((ActionEvent e) -> {
-            exportToExcel();
+            Date startDate = (Date)datePicker1.getModel().getValue();
+            startDate = Utils.getDayStart(startDate);
+            this.startDate = Utils.formatDate2(startDate);
+            Date endDate = (Date)this.datePicker2.getModel().getValue();
+            endDate = Utils.getDayEnd(endDate);
+            this.endDate = Utils.formatDate2(endDate);
+            Utils.exportToExcel(this.startDate, this.endDate, columnNames);
         });
         gbc.gridx = 5;
         this.topToolBox.add(excelButton, gbc);
@@ -123,13 +118,7 @@ public class ReportForm extends BaseForm {
     }
 
     private void createReportPanel() {
-        String[] columnNames = {"Column 1", "Column 2", "Column 3"};
-        Object[][] data = {
-                {"Row 1, Col 1", "Row 1, Col 2", "Row 1, Col 3"},
-                {"Row 2, Col 1", "Row 2, Col 2", "Row 2, Col 3"},
-        };
-
-        reportTable = new JTable(data, columnNames);
+        reportTable = new JTable();
         JScrollPane reportPanel = new JScrollPane(reportTable);
         reportPanel.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
 
@@ -144,7 +133,7 @@ public class ReportForm extends BaseForm {
         return okButton;
     }
 
-    private void showData() {
+    public void showData() {
         prepareDates();
         getReportData();
     }
@@ -152,27 +141,28 @@ public class ReportForm extends BaseForm {
     private void prepareDates() {
         Date startDate1 = (Date)this.datePicker1.getModel().getValue();
         startDate1 = Utils.getDayStart(startDate1);
-        this.startDate = this.dateFormat4.format(startDate1);
+        this.startDate = Utils.formatDate2(startDate1);
         Date endDate1 = (Date)this.datePicker2.getModel().getValue();
         endDate1 = Utils.getDayEnd(endDate1);
-        this.endDate = this.dateFormat4.format(endDate1);
+        this.endDate = Utils.formatDate2(endDate1);
     }
 
     public void getReportData() {
+        int lastColumn = getColumnNames().length - 1;
         getData();
         this.reportTable.setCellSelectionEnabled(true);
         this.reportTable.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
         this.reportTable.setRowHeight(30);
-        this.reportTable.getColumnModel().getColumn(12).setCellRenderer(new ButtonsCellRenderer());
-        this.reportTable.getColumnModel().getColumn(12).setCellEditor(new ButtonsCellEditor());
-        this.reportTable.getColumnModel().getColumn(12).setPreferredWidth(220);
-        this.reportTable.getColumnModel().getColumn(12).setMaxWidth(220);
+        this.reportTable.getColumnModel().getColumn(lastColumn).setCellRenderer(new ButtonsCellRenderer());
+        this.reportTable.getColumnModel().getColumn(lastColumn).setCellEditor(new ButtonsCellEditor());
+        this.reportTable.getColumnModel().getColumn(lastColumn).setPreferredWidth(220);
+        this.reportTable.getColumnModel().getColumn(lastColumn).setMaxWidth(220);
     }
 
     @Override
     public void getData() {
         try {
-            String sql = "SELECT id,weighingType,carNumber,carModel,productName,sender,receiver,operator," +
+            String sql = "SELECT id,weighingType,carNumber,carModel,productName,sender,receiver,carDriver,operator," +
                     "gross,grossDate, tare,tareDate, net FROM weight WHERE deleted=false ";
             if (isNotEmpty(this.startDate) && isNotEmpty(this.endDate)) {
                 sql = sql + " and ((grossDate between '" + this.startDate + "' and '" + this.endDate + "') or (tareDate between '" + this.startDate + "' and '" + this.endDate + "')) ";
@@ -182,7 +172,7 @@ public class ReportForm extends BaseForm {
             Statement stmt = Utils.getStatement();
             ResultSet rs = stmt.executeQuery(sql);
             List<WeightTO> weightList = Utils.convertSQLResultSetToObject(rs, WeightTO.class);
-            this.reportTable.setModel(new WeightTableModel(this, weightList));
+            reportTable.setModel(new WeightTableModel(this, weightList));
 
             Utils.closeConnection();
         } catch (SQLException var7) {
@@ -194,154 +184,4 @@ public class ReportForm extends BaseForm {
         return value != null && !value.isEmpty();
     }
 
-    public void exportToExcel() {
-        Date startDate = (Date)datePicker1.getModel().getValue();
-        startDate = Utils.getDayStart(startDate);
-        this.startDate = this.dateFormat4.format(startDate);
-        Date endDate = (Date)this.datePicker2.getModel().getValue();
-        endDate = Utils.getDayEnd(endDate);
-        this.endDate = this.dateFormat4.format(endDate);
-        XSSFWorkbook workbook = new XSSFWorkbook();
-        XSSFSheet sheet = workbook.createSheet();
-        XSSFRow row = sheet.createRow(0);
-        XSSFCellStyle style = workbook.createCellStyle();
-        style.setAlignment(HorizontalAlignment.CENTER);
-        style.setBorderTop(BorderStyle.THIN);
-        style.setBorderBottom(BorderStyle.THIN);
-        style.setBorderLeft(BorderStyle.THIN);
-        style.setBorderRight(BorderStyle.THIN);
-        XSSFCellStyle style2 = workbook.createCellStyle();
-        style2.setAlignment(HorizontalAlignment.CENTER);
-        style2.setBorderTop(BorderStyle.THIN);
-        style2.setBorderBottom(BorderStyle.THIN);
-        style2.setBorderLeft(BorderStyle.THIN);
-        style2.setBorderRight(BorderStyle.THIN);
-        XSSFFont font = workbook.createFont();
-        font.setFontHeightInPoints((short)15);
-        font.setColor(IndexedColors.BLACK.getIndex());
-        font.setBold(true);
-        style.setFont(font);
-        int index = 0;
-
-        String sql;
-        for (String s : columnNames) {
-            sql = s;
-            XSSFCell cell = row.createCell(index++);
-            cell.setCellValue(sql);
-            cell.setCellStyle(style);
-        }
-
-        sheet.setColumnWidth(0, 2560);
-        sheet.setColumnWidth(1, 5000);
-        sheet.setColumnWidth(2, 5000);
-        sheet.setColumnWidth(3, 5000);
-        sheet.setColumnWidth(4, 5000);
-        sheet.setColumnWidth(5, 3840);
-        sheet.setColumnWidth(6, 3840);
-        sheet.setColumnWidth(7, 3840);
-        sheet.setColumnWidth(8, 7200);
-        sheet.setColumnWidth(9, 7200);
-        sheet.setColumnWidth(10, 7200);
-        sheet.setColumnWidth(11, 7200);
-        sheet.setColumnWidth(12, 5000);
-
-        try {
-            int gross = 0, tare = 0, net = 0;
-            sql = "SELECT id,weighingType,carNumber,carModel,productName,sender,receiver,carDriver,operator,gross,grossDate,tare,tareDate,net FROM weight where deleted=false ";
-            if (isNotEmpty(this.startDate) && isNotEmpty(this.endDate)) {
-                sql = sql + " and ((grossDate between '" + this.startDate + "' and '" + this.endDate + "') or (tareDate between '" + this.startDate + "' and '" + this.endDate + "')) ";
-            }
-
-            sql = sql + " ORDER BY id DESC ";
-            Statement stmt = Utils.getStatement();
-            ResultSet rs = stmt.executeQuery(sql);
-
-            XSSFCell cell;
-            while(rs.next()) {
-                row = sheet.createRow(sheet.getLastRowNum() + 1);
-                cell = row.createCell(0);
-                cell.setCellValue(rs.getInt("id"));
-                cell.setCellStyle(style2);
-
-                cell = row.createCell(1);
-                cell.setCellValue(rs.getString("weighingType"));
-                cell.setCellStyle(style2);
-
-                cell = row.createCell(2);
-                cell.setCellValue(rs.getString("carNumber"));
-                cell.setCellStyle(style2);
-
-                cell = row.createCell(3);
-                cell.setCellValue(rs.getString("carModel"));
-                cell.setCellStyle(style2);
-
-                cell = row.createCell(4);
-                cell.setCellValue(rs.getString("productName"));
-                cell.setCellStyle(style2);
-
-                cell = row.createCell(5);
-                cell.setCellValue(rs.getInt("gross"));
-                cell.setCellStyle(style2);
-                gross = gross + rs.getInt("gross");
-
-                cell = row.createCell(6);
-                cell.setCellValue(rs.getInt("tare"));
-                cell.setCellStyle(style2);
-                tare = tare + rs.getInt("tare");
-
-                cell = row.createCell(7);
-                cell.setCellValue(rs.getInt("net"));
-                cell.setCellStyle(style2);
-                net = net + rs.getInt("net");
-
-                cell = row.createCell(8);
-                cell.setCellValue(rs.getString("sender"));
-                cell.setCellStyle(style2);
-
-                cell = row.createCell(9);
-                cell.setCellValue(rs.getString("receiver"));
-                cell.setCellStyle(style2);
-
-                cell = row.createCell(10);
-                cell.setCellValue(rs.getString("carDriver"));
-                cell.setCellStyle(style2);
-
-                cell = row.createCell(11);
-                cell.setCellValue(rs.getString("operator"));
-                cell.setCellStyle(style2);
-
-                cell = row.createCell(12);
-                cell.setCellValue(Utils.formatDate3(rs.getTimestamp("ТАРА".equals(rs.getString("weighingType")) ? "tareDate" : "grossDate")));
-                cell.setCellStyle(style2);
-            }
-
-            row = sheet.createRow(sheet.getLastRowNum() + 1);
-            cell = row.createCell(0);
-            cell.setCellValue("Жами:");
-            cell.setCellStyle(style);
-            cell = row.createCell(5);
-            cell.setCellValue(gross);
-            cell.setCellStyle(style);
-            cell = row.createCell(6);
-            cell.setCellValue(tare);
-            cell.setCellStyle(style);
-            cell = row.createCell(7);
-            cell.setCellValue(net);
-            cell.setCellStyle(style);
-            Utils.closeConnection();
-            if (Files.notExists(Paths.get(Utils.reportFolder))) {
-                Files.createDirectory(Paths.get(Utils.reportFolder));
-            }
-
-            String fileName = Utils.reportFolder + Utils.dateFormat1.format(new Date()) + ".xlsx";
-            FileOutputStream outputStream = new FileOutputStream(fileName);
-            workbook.write(outputStream);
-            outputStream.flush();
-            outputStream.close();
-            JOptionPane.showMessageDialog(null, Res.localize("REPORT_EXPORTED_TO_EXCEL"), Res.localize("WARNING"), JOptionPane.INFORMATION_MESSAGE);
-            Desktop.getDesktop().open(new File(fileName));
-        } catch (IOException | SQLException var19) {
-            var19.printStackTrace();
-        }
-    }
 }

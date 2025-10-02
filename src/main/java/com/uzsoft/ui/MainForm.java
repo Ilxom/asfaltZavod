@@ -18,7 +18,10 @@ import javax.swing.border.BevelBorder;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.*;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
@@ -144,12 +147,15 @@ public class MainForm extends BaseForm {
                     }
                 } else if ("REPORT_FOLDER".equals(rs.getString("settingKey"))) {
                     Utils.reportFolder = rs.getString("settingValue");
+                    if (Files.notExists(Paths.get(Utils.reportFolder))) {
+                        Files.createDirectory(Paths.get(Utils.reportFolder));
+                    }
                 } else if ("APPLICATION_FOLDER".equals(rs.getString("settingKey"))) {
                     Utils.applicationFolder = rs.getString("settingValue");
                 }
             }
             Utils.closeConnection();
-        } catch (SQLException var9) {
+        } catch (SQLException | IOException var9) {
             throw new RuntimeException(var9);
         }
     }

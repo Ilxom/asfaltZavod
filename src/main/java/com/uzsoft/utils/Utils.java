@@ -1,19 +1,18 @@
 package com.uzsoft.utils;
 
 import com.sun.jna.Platform;
-import org.apache.poi.openxml4j.exceptions.InvalidFormatException;
 import org.apache.poi.ss.usermodel.*;
 import org.apache.poi.xssf.usermodel.*;
 import org.apache.poi.xwpf.usermodel.*;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTTblWidth;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STTblWidth;
 
 import javax.swing.*;
 import java.awt.*;
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
-import java.math.BigInteger;
 import java.sql.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -24,9 +23,7 @@ public class Utils {
     public static SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss");
     public static SimpleDateFormat dateFormat2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     public static SimpleDateFormat fullDateFormat = new SimpleDateFormat("dd.MM.yyyy HH:mm:ss");
-    private static final SimpleDateFormat dateFormat3 = new SimpleDateFormat("dd.MM.yyyy");
     private static final SimpleDateFormat dateFormat4 = new SimpleDateFormat("dd.MM.yyyy HH:mm");
-    private static final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
     private static Connection connection;
     private static Statement statement;
     public static String applicationFolder;
@@ -40,11 +37,6 @@ public class Utils {
     public static String formatDate2(Date date) {
         if (date == null) return "";
         return dateFormat2.format(date);
-    }
-
-    public static String formatDate3(Date date) {
-        if (date == null) return "";
-        return dateFormat3.format(date) + " " + timeFormat.format(date);
     }
 
     public static String formatDate4(Date date) {
@@ -166,10 +158,10 @@ public class Utils {
                                         text = text.replace("documentNumber", weightId.toString());
                                         r.setText(text, 0);
                                     } else if (text != null && text.contains("{weighingDate1}")) {
-                                        text = text.replace("{weighingDate1}", Utils.formatDate3(resultSet.getTimestamp("tareDate")));
+                                        text = text.replace("{weighingDate1}", Utils.formatDate4(resultSet.getTimestamp("tareDate")));
                                         r.setText(text, 0);
                                     } else if (text != null && text.contains("{weighingDate2}")) {
-                                        text = text.replace("{weighingDate2}", Utils.formatDate3(resultSet.getTimestamp("grossDate")));
+                                        text = text.replace("{weighingDate2}", Utils.formatDate4(resultSet.getTimestamp("grossDate")));
                                         r.setText(text, 0);
                                     } else if (text != null && text.contains("carNumber")) {
                                         text = text.replace("carNumber", resultSet.getString("carNumber") != null ? resultSet.getString("carNumber") : "");
@@ -344,9 +336,9 @@ public class Utils {
                             if (cell.getStringCellValue().contains("{documentNumber}")) {
                                 cell.setCellValue(weightId.toString());
                             } else if (cell.getStringCellValue().contains("{weighingDate1}")) {
-                                cell.setCellValue(Utils.formatDate3(resultSet.getTimestamp("tareDate")));
+                                cell.setCellValue(Utils.formatDate4(resultSet.getTimestamp("tareDate")));
                             } else if (cell.getStringCellValue().contains("{weighingDate2}")) {
-                                cell.setCellValue(Utils.formatDate3(resultSet.getTimestamp("grossDate")));
+                                cell.setCellValue(Utils.formatDate4(resultSet.getTimestamp("grossDate")));
                             } else if (cell.getStringCellValue().contains("{carNumber}")) {
                                 cell.setCellValue(resultSet.getString("carNumber"));
                             } else if (cell.getStringCellValue().contains("{carModel}")) {
@@ -387,4 +379,117 @@ public class Utils {
         }
     }
 
+    public static void exportToExcel(String startDate, String endDate, String[] columnNames) {
+        XSSFWorkbook workbook = new XSSFWorkbook();
+        XSSFSheet sheet = workbook.createSheet();
+        XSSFRow row = sheet.createRow(0);
+
+        XSSFFont font = workbook.createFont();
+        font.setFontHeightInPoints((short)15);
+        font.setColor(IndexedColors.BLACK.getIndex());
+        font.setBold(true);
+
+        XSSFCellStyle headerStyle = createCellStyle(workbook, font);
+        XSSFCellStyle contentStyle = createCellStyle(workbook, null);
+
+        int index = 0;
+
+        columnNames = Arrays.copyOfRange(columnNames, index, columnNames.length-1);
+        for (String columnName : columnNames) {
+            XSSFCell cell = row.createCell(index++);
+            cell.setCellValue(columnName);
+            cell.setCellStyle(headerStyle);
+        }
+
+        sheet.setColumnWidth(0, 2560);
+        sheet.setColumnWidth(1, 6000);
+        sheet.setColumnWidth(2, 6000);
+        sheet.setColumnWidth(3, 5000);
+        sheet.setColumnWidth(4, 5000);
+        sheet.setColumnWidth(5, 3840);
+        sheet.setColumnWidth(6, 3840);
+        sheet.setColumnWidth(7, 3840);
+        sheet.setColumnWidth(8, 7200);
+        sheet.setColumnWidth(9, 7200);
+        sheet.setColumnWidth(10, 7200);
+        sheet.setColumnWidth(11, 7200);
+        sheet.setColumnWidth(12, 5000);
+
+        try {
+            int gross = 0, tare = 0, net = 0;
+            Statement stmt = Utils.getStatement();
+            ResultSet rs = stmt.executeQuery(
+                    new StringBuilder().append("SELECT id,weighingType,carNumber,carModel,productName,sender,receiver,carDriver," +
+                            "operator,gross,grossDate,tare,tareDate,net FROM weight where deleted=false ").append(" and ((grossDate between '")
+                            .append(startDate).append("' and '").append(endDate).append("') or (tareDate between '")
+                            .append(startDate).append("' and '").append(endDate).append("')) ").append(" ORDER BY id DESC ").toString());
+
+            XSSFCell cell;
+            while(rs.next()) {
+                int cellIndex = 0;
+                row = sheet.createRow(sheet.getLastRowNum() + 1);
+
+                createAndSetCellValue(row, cellIndex++, rs.getInt("id"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getString("weighingType"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getString("carNumber"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getString("carModel"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getString("productName"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getInt("gross"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getInt("tare"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getInt("net"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getString("sender"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getString("receiver"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getString("carDriver"), contentStyle);
+                createAndSetCellValue(row, cellIndex++, rs.getString("operator"), contentStyle);
+                createAndSetCellValue(row, cellIndex, Utils.formatDate4(rs.getTimestamp("ТАРА".equals(rs.getString("weighingType")) ? "tareDate" : "grossDate")), contentStyle);
+            }
+
+            row = sheet.createRow(sheet.getLastRowNum() + 1);
+            createAndSetCellValue(row, 0, "Жами:", headerStyle);
+            createAndSetCellValue(row, 5, gross, headerStyle);
+            createAndSetCellValue(row, 6, tare, headerStyle);
+            createAndSetCellValue(row, 7, net, headerStyle);
+
+            Utils.closeConnection();
+
+            String fileName = Utils.reportFolder + Utils.dateFormat1.format(new Date()) + ".xlsx";
+            FileOutputStream outputStream = new FileOutputStream(fileName);
+            workbook.write(outputStream);
+            outputStream.flush();
+            outputStream.close();
+            JOptionPane.showMessageDialog(null, Res.localize("REPORT_EXPORTED_TO_EXCEL"), Res.localize("WARNING"), JOptionPane.INFORMATION_MESSAGE);
+            Desktop.getDesktop().open(new File(fileName));
+        } catch (IOException | SQLException var19) {
+            var19.printStackTrace();
+        }
+    }
+
+    private static XSSFCellStyle createCellStyle(XSSFWorkbook workbook, XSSFFont font) {
+        XSSFCellStyle style = workbook.createCellStyle();
+        style.setAlignment(HorizontalAlignment.CENTER);
+        style.setBorderTop(BorderStyle.THIN);
+        style.setBorderBottom(BorderStyle.THIN);
+        style.setBorderLeft(BorderStyle.THIN);
+        style.setBorderRight(BorderStyle.THIN);
+        if (font != null) {
+            style.setFont(font);
+        }
+        return style;
+    }
+
+    private static void createAndSetCellValue(XSSFRow row, int cellIndex, Integer value, XSSFCellStyle contentStyle) {
+        XSSFCell cell = createAndSetCellValue(row, cellIndex, contentStyle);
+        cell.setCellValue(value);
+    }
+
+    private static void createAndSetCellValue(XSSFRow row, int cellIndex, String value, XSSFCellStyle contentStyle) {
+        XSSFCell cell = createAndSetCellValue(row, cellIndex, contentStyle);
+        cell.setCellValue(value);
+    }
+
+    private static XSSFCell createAndSetCellValue(XSSFRow row, int cellIndex, XSSFCellStyle contentStyle) {
+        XSSFCell cell = row.createCell(cellIndex);
+        cell.setCellStyle(contentStyle);
+        return cell;
+    }
 }

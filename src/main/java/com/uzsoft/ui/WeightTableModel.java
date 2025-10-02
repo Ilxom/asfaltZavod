@@ -29,7 +29,7 @@ public class WeightTableModel extends AbstractTableModel {
         Class value = Object.class;
         value = switch (columnIndex) {
             case 0, 5, 6, 7 -> Integer.class;
-            case 1, 2, 3, 4, 8, 9, 10, 11 -> String.class;
+            case 1, 2, 3, 4, 8, 9, 10, 11, 12 -> String.class;
             default -> value;
         };
 
@@ -60,13 +60,13 @@ public class WeightTableModel extends AbstractTableModel {
             case 9 -> obj.getReceiver();
             case 10 -> obj.getCarDriver();
             case 11 -> obj.getOperator();
-            case 12 -> Utils.formatDate3("ТАРА".equals(obj.getWeighingType()) ? obj.getTareDate() : obj.getGrossDate());
+            case 12 -> Utils.formatDate4("ТАРА".equals(obj.getWeighingType()) ? obj.getTareDate() : obj.getGrossDate());
             default -> null;
         };
     }
 
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        if (columnIndex == 12) {
+        if (columnIndex == getColumnCount() - 1) {
             System.out.println(aValue);
             WeightTO value = this.data.get(rowIndex);
             if ("exportToWord".equals(aValue)) {
@@ -82,23 +82,25 @@ public class WeightTableModel extends AbstractTableModel {
 
             this.fireTableCellUpdated(rowIndex, columnIndex);
         }
-
     }
 
     public void remove(WeightTO value) {
         int startIndex = this.data.indexOf(value);
-        int dialog = JOptionPane.showConfirmDialog(null, String.format(Res.localize("REMOVE_DATA_QUESTION"), value.getId()), Res.localize("WARNING"), 2, 2);
-        if (dialog == 0) {
+        int dialog = JOptionPane.showConfirmDialog(null, String.format(Res.localize("REMOVE_DATA_QUESTION"), value.getId()),
+                Res.localize("WARNING"), JOptionPane.OK_CANCEL_OPTION, JOptionPane.WARNING_MESSAGE);
+        if (dialog == JOptionPane.YES_NO_OPTION) {
             try {
                 Statement statement = Utils.getStatement();
                 int resultSet = statement.executeUpdate("update weight set deleted=true, deletedDate=now() where id=" + value.getId());
                 if (resultSet > 0) {
-                    JOptionPane.showMessageDialog(null, String.format(Res.localize("REMOVE_DATA_SUCCESS"), value.getId()), Res.localize("WARNING"), 1);
+                    JOptionPane.showMessageDialog(null, String.format(Res.localize("REMOVE_DATA_SUCCESS"), value.getId()),
+                            Res.localize("WARNING"), JOptionPane.INFORMATION_MESSAGE);
                     data.remove(value);
                     fireTableRowsInserted(startIndex, startIndex);
-                    form.getData();
+                    ((ReportForm)form).showData();
                 } else {
-                    JOptionPane.showMessageDialog(null, String.format(Res.localize("REMOVE_DATA_ERROR"), value.getId()), Res.localize("WARNING"), 2);
+                    JOptionPane.showMessageDialog(null, String.format(Res.localize("REMOVE_DATA_ERROR"), value.getId()),
+                            Res.localize("WARNING"), JOptionPane.WARNING_MESSAGE);
                 }
             } catch (SQLException var6) {
                 var6.printStackTrace();
