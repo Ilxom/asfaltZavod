@@ -30,6 +30,7 @@ public class Utils {
     public static String reportFolder;
     public static String userName;
     public static String userFullName;
+    public static Boolean testMode = false;
 
     public Utils() {
     }
@@ -379,7 +380,7 @@ public class Utils {
         }
     }
 
-    public static void exportToExcel(String startDate, String endDate, String[] columnNames) {
+    public static void exportSummaryReportToToExcel(String startDate, String endDate, String[] columnNames) {
         XSSFWorkbook workbook = new XSSFWorkbook();
         XSSFSheet sheet = workbook.createSheet();
         XSSFRow row = sheet.createRow(0);
@@ -442,6 +443,9 @@ public class Utils {
                 createAndSetCellValue(row, cellIndex++, rs.getString("carDriver"), contentStyle);
                 createAndSetCellValue(row, cellIndex++, rs.getString("operator"), contentStyle);
                 createAndSetCellValue(row, cellIndex, Utils.formatDate4(rs.getTimestamp("ТАРА".equals(rs.getString("weighingType")) ? "tareDate" : "grossDate")), contentStyle);
+                gross += rs.getInt("gross");
+                tare += rs.getInt("tare");
+                net += rs.getInt("net");
             }
 
             row = sheet.createRow(sheet.getLastRowNum() + 1);

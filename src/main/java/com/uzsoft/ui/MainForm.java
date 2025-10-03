@@ -39,6 +39,7 @@ public class MainForm extends BaseForm {
 
     private JPanel mainPanel;
     private JLabel weightLabel;
+    private JTextField weightBox;
     private JLabel currentDateTime;
     private JComboBox<String> productName;
     private JComboBox<String> receiver;
@@ -152,6 +153,8 @@ public class MainForm extends BaseForm {
                     }
                 } else if ("APPLICATION_FOLDER".equals(rs.getString("settingKey"))) {
                     Utils.applicationFolder = rs.getString("settingValue");
+                } else if ("TEST_MODE".equals(rs.getString("settingKey"))) {
+                    Utils.testMode = rs.getBoolean("settingValue");
                 }
             }
             Utils.closeConnection();
@@ -171,7 +174,11 @@ public class MainForm extends BaseForm {
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         createLabel(mainPanel, gridBagLayout, gbc, Res.string().getScaleIndicator(), 0, y, SwingConstants.LEFT, false, null);
-        weightLabel = createLabel(mainPanel, gridBagLayout, gbc, "0", 30, 1, y++, SwingConstants.CENTER, true, "weightLabel");
+        if (Utils.testMode) {
+            weightBox = createTextBox(mainPanel, gridBagLayout, gbc, 1, y++, "weightBox");
+        } else {
+            weightLabel = createLabel(mainPanel, gridBagLayout, gbc, "0", 30, 1, y++, SwingConstants.CENTER, true, "weightLabel");
+        }
 
         createLabel(mainPanel, gridBagLayout, gbc, Res.string().getDirection(), 0, y, SwingConstants.LEFT, false, null);
         direction = createCombobox(mainPanel, gridBagLayout, gbc, new String[]{"ТАРА","БРУТТО"}, 1, y++, "direction");
@@ -395,7 +402,7 @@ public class MainForm extends BaseForm {
     private void saveData() {
         try {
             if (carNumberLabel.getText() != null && !Objects.equals(carNumberLabel.getText(), "")) {
-                sumWeight = Integer.parseInt(weightLabel.getText());
+                sumWeight = Integer.parseInt(Utils.testMode ? weightBox.getText() : weightLabel.getText());
                 Statement statement = Utils.getStatement();
 
                 String sql = "", weighingType = (String) direction.getSelectedItem();
@@ -455,7 +462,11 @@ public class MainForm extends BaseForm {
                     String inputLine = new String(bytes, StandardCharsets.UTF_8);
                     if (!inputLine.trim().isEmpty()) {
                         Integer clearedString = clearString(inputLine);
-                        weightLabel.setText(String.valueOf(clearedString));
+                        if (Utils.testMode) {
+                            weightBox.setText(String.valueOf(clearedString));
+                        } else {
+                            weightLabel.setText(String.valueOf(clearedString));
+                        }
                         sumWeight = clearedString;
                     }
                 }

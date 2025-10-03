@@ -15,7 +15,6 @@ import java.awt.event.ActionEvent;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Properties;
@@ -101,7 +100,7 @@ public class ReportForm extends BaseForm {
             Date endDate = (Date)this.datePicker2.getModel().getValue();
             endDate = Utils.getDayEnd(endDate);
             this.endDate = Utils.formatDate2(endDate);
-            Utils.exportToExcel(this.startDate, this.endDate, columnNames);
+            Utils.exportSummaryReportToToExcel(this.startDate, this.endDate, columnNames);
         });
         gbc.gridx = 5;
         this.topToolBox.add(excelButton, gbc);
@@ -163,12 +162,8 @@ public class ReportForm extends BaseForm {
     public void getData() {
         try {
             String sql = "SELECT id,weighingType,carNumber,carModel,productName,sender,receiver,carDriver,operator," +
-                    "gross,grossDate, tare,tareDate, net FROM weight WHERE deleted=false ";
-            if (isNotEmpty(this.startDate) && isNotEmpty(this.endDate)) {
-                sql = sql + " and ((grossDate between '" + this.startDate + "' and '" + this.endDate + "') or (tareDate between '" + this.startDate + "' and '" + this.endDate + "')) ";
-            }
-
-            sql = sql + " ORDER BY id DESC ";
+                    "gross,grossDate, tare,tareDate, net FROM weight WHERE deleted=false and ((grossDate between '" + this.startDate +
+                    "' and '" + this.endDate + "') or (tareDate between '" + this.startDate + "' and '" + this.endDate + "')) ORDER BY id DESC ";
             Statement stmt = Utils.getStatement();
             ResultSet rs = stmt.executeQuery(sql);
             List<WeightTO> weightList = Utils.convertSQLResultSetToObject(rs, WeightTO.class);
