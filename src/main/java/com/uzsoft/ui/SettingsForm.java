@@ -1,6 +1,7 @@
 package com.uzsoft.ui;
 
 import com.uzsoft.Constants;
+import com.uzsoft.utils.UIUtil;
 import com.uzsoft.utils.Utils;
 import jssc.SerialPortList;
 import com.uzsoft.utils.Res;
@@ -26,11 +27,13 @@ public class SettingsForm extends JFrame implements Constants {
     private JTextField camera2Port;
     private JTextField camera2UserName;
     private JTextField clientName, productName;
+    private JTextField carNumber, carModel;
     private JTextField comPortSpeed;
     private JPasswordField camera2Password;
     private JButton camera1SaveButton;
     private JButton camera2SaveButton;
     private JButton saveClientButton, saveProductButton;
+    private JButton saveCarButton;
     GridBagLayout gridBagLayout = new GridBagLayout();
 
     private static final Font font12Bold = new Font("Arial", Font.BOLD, 12);
@@ -69,8 +72,14 @@ public class SettingsForm extends JFrame implements Constants {
         gridBagLayout.setConstraints(clientPanel, gbc);
         mainPanel.add(clientPanel);
 
-        JPanel productPanel = createProductPanel();
+        JPanel carsPanel = createCarsPanel();
         gbc.gridx = 1;
+        gridBagLayout.setConstraints(carsPanel, gbc);
+        mainPanel.add(carsPanel);
+
+        JPanel productPanel = createProductPanel();
+        gbc.gridy = 3;
+        gbc.gridx = 0;
         gridBagLayout.setConstraints(productPanel, gbc);
         mainPanel.add(productPanel);
 
@@ -240,6 +249,28 @@ public class SettingsForm extends JFrame implements Constants {
                 Utils.closeConnection();
                 mainForm.fetchProducts();
                 JOptionPane.showMessageDialog(null, Res.localize("PRODUCT_DATA_SAVED"), Res.string().getError(), JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+
+        saveCarButton.addActionListener(e -> {
+            if (carNumber.getText() == null || carNumber.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(null, Res.localize("ENTER_CAR_NUMBER"), Res.string().getError(), JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            if (carModel.getText() == null || carModel.getText().isEmpty()) {
+                JOptionPane.showMessageDialog(null, Res.localize("ENTER_CAR_MODEL"), Res.string().getError(), JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+
+            Statement stmt = Utils.getStatement();
+            try {
+                stmt.executeUpdate("insert into cars(carNumber, carModel) values('" + carNumber.getText() + "', '" + carModel.getText() + "')");
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            } finally {
+                Utils.closeConnection();
+                mainForm.fetchCars();
+                JOptionPane.showMessageDialog(null, Res.localize("CAR_DATA_SAVED"), Res.string().getError(), JOptionPane.INFORMATION_MESSAGE);
             }
         });
     }
@@ -505,6 +536,31 @@ public class SettingsForm extends JFrame implements Constants {
         gbc.gridx = 1;
         gridBagLayout.setConstraints(saveClientButton, gbc);
         panel.add(saveClientButton);
+
+        return panel;
+    }
+
+    private JPanel createCarsPanel() {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        GridBagLayout gridBagLayout = new GridBagLayout();
+
+        JPanel panel = new JPanel(gridBagLayout);
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), Res.localize("CARS")));
+        panel.setPreferredSize(new Dimension(300, 130));
+
+        UIUtil.createLabel(panel, gridBagLayout, gbc, Res.localize("CAR_NUMBER"), 0, 0, 100, 30, SwingConstants.LEFT, font12Bold, null);
+        carNumber = UIUtil.createTextBox(panel, gridBagLayout, gbc, 1, 0, 200, 30, SwingConstants.LEFT, "carNumber");
+
+        UIUtil.createLabel(panel, gridBagLayout, gbc, Res.localize("CAR_MODEL"), 0, 1, 100, 30, SwingConstants.LEFT, font12Bold, null);
+        carModel = UIUtil.createTextBox(panel, gridBagLayout, gbc, 1, 1, 200, 30, SwingConstants.LEFT, "carModel");
+
+        saveCarButton = new JButton(Res.string().getSave());
+        saveCarButton.setFont(font14Bold);
+        gbc.gridy = 2;
+        gbc.gridx = 1;
+        gridBagLayout.setConstraints(saveCarButton, gbc);
+        panel.add(saveCarButton);
 
         return panel;
     }

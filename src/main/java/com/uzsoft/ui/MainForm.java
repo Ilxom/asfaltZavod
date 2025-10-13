@@ -1,5 +1,6 @@
 package com.uzsoft.ui;
 
+import com.uzsoft.dto.CarTO;
 import com.uzsoft.dto.ClientDto;
 import com.uzsoft.dto.SimpleTO;
 import com.uzsoft.dto.WeightTO;
@@ -36,6 +37,7 @@ import static com.uzsoft.utils.UIUtil.*;
 public class MainForm extends BaseForm {
     public static List<String> clients = new ArrayList<>();
     public static List<String> products = new ArrayList<>();
+    public static List<String> cars = new ArrayList<>();
 
     private JPanel mainPanel;
     private JLabel weightLabel;
@@ -48,8 +50,8 @@ public class MainForm extends BaseForm {
     private JComboBox<String> direction;
     private JTable reportTable;
     private JPanel videoPanel;
-    private JTextField carNumberLabel;
-    private JTextField carModelLabel;
+    private JComboBox<String> carNumberBox;
+    private JTextField carModelBox;
     private SerialPort serialPort;
     private Integer weightId = null;
     private Integer sumWeight;
@@ -184,12 +186,25 @@ public class MainForm extends BaseForm {
         direction = createCombobox(mainPanel, gridBagLayout, gbc, new String[]{"ТАРА","БРУТТО"}, 1, y++, "direction");
 
         createLabel(mainPanel, gridBagLayout, gbc, Res.string().getCarNumber(), 0, y, SwingConstants.LEFT, false, null);
-        carNumberLabel = createTextBox(mainPanel, gridBagLayout, gbc, 1, y++, "carNumberLabel");
-        carNumberLabel.setBorder(new BevelBorder(BevelBorder.RAISED));
+        carNumberBox = createCombobox(mainPanel, gridBagLayout, gbc, new String[]{}, 1, y++, "carNumberLabel");
+        carNumberBox.setBorder(new BevelBorder(BevelBorder.RAISED));
+        fetchCars();
+        carNumberBox.addItemListener(itemEvent -> {
+            try {
+                Statement stmt = Utils.getStatement();
+                ResultSet rs = stmt.executeQuery("SELECT * FROM cars where carNumber='" + itemEvent.getItem().toString() + "'");
+                List<CarTO> carList = Utils.convertSQLResultSetToObject(rs, CarTO.class);
+                carModelBox.setText(carList.get(0).getCarModel());
+                Utils.closeConnection();
+            } catch (SQLException e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         createLabel(mainPanel, gridBagLayout, gbc, Res.string().getCarModel(), 0, y, SwingConstants.LEFT, false, null);
-        carModelLabel = createTextBox(mainPanel, gridBagLayout, gbc, 1, y++, "carModelLabel");
-        carModelLabel.setBorder(new BevelBorder(BevelBorder.RAISED));
+        carModelBox = createTextBox(mainPanel, gridBagLayout, gbc, 1, y++, "carModelLabel");
+        carModelBox.setBorder(new BevelBorder(BevelBorder.RAISED));
+        carModelBox.setEnabled(false);
 
         createLabel(mainPanel, gridBagLayout, gbc, Res.string().getProductName(), 0, y, SwingConstants.LEFT, false, null);
         productName = createCombobox(mainPanel, gridBagLayout, gbc, products.toArray(new String[]{}), 1, y++, "productName");
@@ -270,8 +285,8 @@ public class MainForm extends BaseForm {
                     if (reportTable.getModel().getValueAt(row, 0) != null) {
                         weightId = (Integer) reportTable.getModel().getValueAt(row, 0);
                     }
-                    carNumberLabel.setText((String) reportTable.getModel().getValueAt(row, 2));
-                    carModelLabel.setText((String) reportTable.getModel().getValueAt(row, 3));
+                    carNumberBox.setSelectedItem(reportTable.getModel().getValueAt(row, 2));
+                    carModelBox.setText((String) reportTable.getModel().getValueAt(row, 3));
                     productName.setSelectedItem(reportTable.getModel().getValueAt(row, 4));
                     sender.setText((String) reportTable.getModel().getValueAt(row, 8));
                     receiver.setSelectedItem(reportTable.getModel().getValueAt(row, 9));
@@ -390,9 +405,23 @@ public class MainForm extends BaseForm {
         }
     }
 
+    public void fetchCars() {
+        try {
+            String sql = "SELECT * FROM cars ORDER BY id";
+            Statement stmt = Utils.getStatement();
+            ResultSet rs = stmt.executeQuery(sql);
+            List<CarTO> weightList = Utils.convertSQLResultSetToObject(rs, CarTO.class);
+            cars = weightList.stream().map(CarTO::getCarNumber).collect(Collectors.toList());
+            Utils.closeConnection();
+            carNumberBox.setModel(new DefaultComboBoxModel<>(cars.toArray(new String[]{})));
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void clearFields() {
-        carNumberLabel.setText("");
-        carModelLabel.setText("");
+        carNumberBox.setSelectedItem("");
+        carModelBox.setText("");
         sender.setText("");
         carDriver.setText("");
         weightId = null;
@@ -401,7 +430,7 @@ public class MainForm extends BaseForm {
 
     private void saveData() {
         try {
-            if (carNumberLabel.getText() != null && !Objects.equals(carNumberLabel.getText(), "")) {
+            if (carNumberBox.getSelectedItem() != null && !Objects.equals(carNumberBox.getSelectedItem(), "")) {
                 sumWeight = Integer.parseInt(Utils.testMode ? weightBox.getText() : weightLabel.getText());
                 Statement statement = Utils.getStatement();
 
@@ -414,7 +443,7 @@ public class MainForm extends BaseForm {
                     }
                     statement.executeUpdate("INSERT INTO weight(" + sql + "weighingType, carNumber, carModel, productName, " +
                             "sender, receiver, carDriver, operator) VALUES(" + sumWeight + ", '" + Utils.formatDate2(new Date()) + "', '" +
-                            weighingType + "', '" + carNumberLabel.getText() + "', '" + carModelLabel.getText() + "', '" +
+                            weighingType + "', '" + carNumberBox.getSelectedItem() + "', '" + carModelBox.getText() + "', '" +
                             Objects.requireNonNull(productName.getSelectedItem()) + "', '" +
                             sender.getText() + "', '" + Objects.requireNonNull(receiver.getSelectedItem()) + "', '" + carDriver.getText() + "', '" + operator.getText() + "')");
                 } else {
