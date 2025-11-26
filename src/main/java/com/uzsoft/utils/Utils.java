@@ -1,7 +1,10 @@
 package com.uzsoft.utils;
 
 import com.sun.jna.Platform;
+import com.uzsoft.Constants;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.poi.ss.usermodel.*;
+import org.apache.poi.util.Units;
 import org.apache.poi.xssf.usermodel.*;
 import org.apache.poi.xwpf.usermodel.*;
 
@@ -19,6 +22,7 @@ import java.util.*;
 import java.util.Date;
 import java.util.List;
 
+@Slf4j
 public class Utils {
     public static SimpleDateFormat dateFormat1 = new SimpleDateFormat("dd_MM_yyyy_HH_mm_ss");
     public static SimpleDateFormat dateFormat2 = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -158,11 +162,11 @@ public class Utils {
                                     if (text != null && text.contains("documentNumber")) {
                                         text = text.replace("documentNumber", weightId.toString());
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{weighingDate1}")) {
-                                        text = text.replace("{weighingDate1}", Utils.formatDate4(resultSet.getTimestamp("tareDate")));
+                                    } else if (text != null && text.contains("weighingDate1")) {
+                                        text = text.replace("weighingDate1", Utils.formatDate4(resultSet.getTimestamp("tareDate")));
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{weighingDate2}")) {
-                                        text = text.replace("{weighingDate2}", Utils.formatDate4(resultSet.getTimestamp("grossDate")));
+                                    } else if (text != null && text.contains("weighingDate2")) {
+                                        text = text.replace("weighingDate2", Utils.formatDate4(resultSet.getTimestamp("grossDate")));
                                         r.setText(text, 0);
                                     } else if (text != null && text.contains("carNumber")) {
                                         text = text.replace("carNumber", resultSet.getString("carNumber") != null ? resultSet.getString("carNumber") : "");
@@ -170,29 +174,29 @@ public class Utils {
                                     } else if (text != null && text.contains("carModel")) {
                                         text = text.replace("carModel", resultSet.getString("carModel") != null ? resultSet.getString("carModel") : "");
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{product}")) {
-                                        text = text.replace("{product}", resultSet.getString("productName") != null ? resultSet.getString("productName") : "");
+                                    } else if (text != null && text.contains("product")) {
+                                        text = text.replace("product", resultSet.getString("productName") != null ? resultSet.getString("productName") : "");
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{sender}")) {
-                                        text = text.replace("{sender}", resultSet.getString("sender") != null ? resultSet.getString("sender") : "");
+                                    } else if (text != null && text.contains("sender")) {
+                                        text = text.replace("sender", resultSet.getString("sender") != null ? resultSet.getString("sender") : "");
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{receiver}")) {
-                                        text = text.replace("{receiver}", resultSet.getString("receiver") != null ? resultSet.getString("receiver") : "");
+                                    } else if (text != null && text.contains("receiver")) {
+                                        text = text.replace("receiver", resultSet.getString("receiver") != null ? resultSet.getString("receiver") : "");
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{driver}")) {
-                                        text = text.replace("{driver}", resultSet.getString("carDriver") != null ? resultSet.getString("carDriver") : "");
+                                    } else if (text != null && text.contains("driver")) {
+                                        text = text.replace("driver", resultSet.getString("carDriver") != null ? resultSet.getString("carDriver") : "");
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{operator}")) {
-                                        text = text.replace("{operator}", resultSet.getString("operator") != null ? resultSet.getString("operator") : "");
+                                    } else if (text != null && text.contains("operator")) {
+                                        text = text.replace("operator", resultSet.getString("operator") != null ? resultSet.getString("operator") : "");
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{tare}")) {
-                                        text = text.replace("{tare}", resultSet.getString("tare"));
+                                    } else if (text != null && text.contains("tare")) {
+                                        text = text.replace("tare", resultSet.getString("tare"));
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{gross}")) {
-                                        text = text.replace("{gross}", resultSet.getString("gross"));
+                                    } else if (text != null && text.contains("gross")) {
+                                        text = text.replace("gross", resultSet.getString("gross"));
                                         r.setText(text, 0);
-                                    } else if (text != null && text.contains("{net}")) {
-                                        text = text.replace("{net}", resultSet.getString("net"));
+                                    } else if (text != null && text.contains("net")) {
+                                        text = text.replace("net", resultSet.getString("net"));
                                         r.setText(text, 0);
                                     }
                                 } catch (SQLException e) {
@@ -204,14 +208,36 @@ public class Utils {
                 });
             }
 
+            addImage(document, weightId, "cameraImage1");
+            addImage(document, weightId, "cameraImage2");
+
             FileOutputStream outputStream = new FileOutputStream(reportFolder + weightId + ".docx");
             document.write(outputStream);
             outputStream.close();
             inputStream.close();
             document.close();
             Desktop.getDesktop().open(new File(reportFolder + weightId + ".docx"));
-        } catch (SQLException | IOException var10) {
-            var10.printStackTrace();
+        } catch (SQLException | IOException e) {
+            log.error(Arrays.toString(e.getStackTrace()));
+        }
+    }
+
+    private static void addImage(XWPFDocument document, Integer weightId, String imageName) {
+        try (FileInputStream imageStream = new FileInputStream(Constants.applicationFolder + "/files/images/" + weightId + ".jpg")) {
+            document.getParagraphs().forEach(paragraph -> {
+                paragraph.getRuns().forEach(run -> {
+                    if (imageName.equals(run.getText(0))) {
+                        try {
+                            run.setText(null, 0);
+                            run.addPicture(imageStream, XWPFDocument.PICTURE_TYPE_JPEG, "image.jpg", Units.toEMU(200), Units.toEMU(120)); // 200px width, 150px height
+                        } catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException | IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    }
+                });
+            });
+        } catch (IOException e) {
+            log.error(Arrays.toString(e.getStackTrace()));
         }
     }
 

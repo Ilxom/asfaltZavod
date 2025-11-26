@@ -11,6 +11,7 @@ import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
+import java.util.Arrays;
 
 public class SettingsForm extends JFrame implements Constants {
     private JComboBox<String> comListBox;
@@ -175,7 +176,7 @@ public class SettingsForm extends JFrame implements Constants {
                 stmt.executeUpdate("update settings set settingValue='" + camera1IPAddress.getText() + "' where settingKey='CAMERA1_IP_ADDRESS'");
                 stmt.executeUpdate("update settings set settingValue='" + camera1Port.getText() + "' where settingKey='CAMERA1_PORT'");
                 stmt.executeUpdate("update settings set settingValue='" + camera1UserName.getText() + "' where settingKey='CAMERA1_USERNAME'");
-                stmt.executeUpdate("update settings set settingValue='" + camera1Password.getText() + "' where settingKey='CAMERA1_PASSWORD'");
+                stmt.executeUpdate("update settings set settingValue='" + Arrays.toString(camera1Password.getPassword()) + "' where settingKey='CAMERA1_PASSWORD'");
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             } finally {
@@ -207,7 +208,7 @@ public class SettingsForm extends JFrame implements Constants {
                 stmt.executeUpdate("update settings set settingValue='" + camera2IPAddress.getText() + "' where settingKey='CAMERA2_IP_ADDRESS'");
                 stmt.executeUpdate("update settings set settingValue='" + camera2Port.getText() + "' where settingKey='CAMERA2_PORT'");
                 stmt.executeUpdate("update settings set settingValue='" + camera2UserName.getText() + "' where settingKey='CAMERA2_USERNAME'");
-                stmt.executeUpdate("update settings set settingValue='" + camera2Password.getText() + "' where settingKey='CAMERA2_PASSWORD'");
+                stmt.executeUpdate("update settings set settingValue='" + Arrays.toString(camera2Password.getPassword()) + "' where settingKey='CAMERA2_PASSWORD'");
             } catch (SQLException ex) {
                 throw new RuntimeException(ex);
             } finally {

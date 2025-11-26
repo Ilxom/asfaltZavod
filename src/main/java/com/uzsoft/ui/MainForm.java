@@ -1,5 +1,6 @@
 package com.uzsoft.ui;
 
+import com.uzsoft.Constants;
 import com.uzsoft.dto.CarTO;
 import com.uzsoft.dto.ClientDto;
 import com.uzsoft.dto.SimpleTO;
@@ -12,6 +13,7 @@ import com.uzsoft.utils.Res;
 import com.uzsoft.utils.Utils;
 import jssc.SerialPort;
 import jssc.SerialPortEvent;
+import lombok.extern.slf4j.Slf4j;
 
 import javax.swing.*;
 import javax.swing.Timer;
@@ -34,6 +36,7 @@ import java.util.stream.Collectors;
 
 import static com.uzsoft.utils.UIUtil.*;
 
+@Slf4j
 public class MainForm extends BaseForm {
     public static List<String> clients = new ArrayList<>();
     public static List<String> products = new ArrayList<>();
@@ -61,6 +64,7 @@ public class MainForm extends BaseForm {
     private String camera2UserName, camera2Password;
     private String camera1IPAddress, camera2IPAddress;
     private Integer camera1Port, camera2Port;
+    private static NetSDKLib.LLong playHandle = null;
 
     private static final List<NetSDKLib.LLong> playHandles = new ArrayList<>();
     private boolean camera1IsEnabled = false, camera2IsEnabled = false;
@@ -144,8 +148,8 @@ public class MainForm extends BaseForm {
                             serialPort = main.getSerialPort();
                             serialPort.addEventListener(this::serialEvent);
                             System.out.println(comPortName + " Started successfully");
-                        } catch (Exception var8) {
-                            var8.printStackTrace();
+                        } catch (Exception e) {
+                            log.error(Arrays.toString(e.getStackTrace()));
                         }
                     }
                 } else if ("REPORT_FOLDER".equals(rs.getString("settingKey"))) {
@@ -329,7 +333,7 @@ public class MainForm extends BaseForm {
             reportTable.setModel(new WeightTableModel(this, weightList));
             Utils.closeConnection();
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error(Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -361,7 +365,6 @@ public class MainForm extends BaseForm {
         LoginModule loginModule = new LoginModule();
         NetSDKLib.LLong loginHandle = loginModule.login(ipAddress, port, userName, password);
         if (loginHandle.longValue() >= 1) {
-            NetSDKLib.LLong playHandle = null;
             RealPlayWindow playWindow = new RealPlayWindow(loginHandle);
             videoPanel.add(playWindow);
 
@@ -377,6 +380,15 @@ public class MainForm extends BaseForm {
         }
     }
 
+    private void localCapturePicture(String picFileName) {
+        boolean pictureEx = LoginModule.netsdk.CLIENT_CapturePictureEx(playHandle, Constants.applicationFolder + "/files/images/" + picFileName, NetSDKLib.NET_CAPTURE_FORMATS.NET_CAPTURE_JPEG);
+        if (!pictureEx) {
+            System.err.println("CLIENT_CapturePicture Failed!");
+        } else {
+            System.out.println("CLIENT_CapturePicture success");
+        }
+    }
+
     public void fetchClients() {
         try {
             String sql = "SELECT * FROM client ORDER BY clientName ";
@@ -387,7 +399,7 @@ public class MainForm extends BaseForm {
             Utils.closeConnection();
             receiver.setModel(new DefaultComboBoxModel<>(clients.toArray(new String[]{})));
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error(Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -401,7 +413,7 @@ public class MainForm extends BaseForm {
             Utils.closeConnection();
             productName.setModel(new DefaultComboBoxModel<>(products.toArray(new String[]{})));
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error(Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -415,7 +427,7 @@ public class MainForm extends BaseForm {
             Utils.closeConnection();
             carNumberBox.setModel(new DefaultComboBoxModel<>(cars.toArray(new String[]{})));
         } catch (SQLException e) {
-            e.printStackTrace();
+            log.error(Arrays.toString(e.getStackTrace()));
         }
     }
 
@@ -454,6 +466,7 @@ public class MainForm extends BaseForm {
                     }
                     statement.executeUpdate("UPDATE weight set " + sql + "'" +
                             Utils.formatDate2(new Date()) + "', weighingType='" + weighingType + "' WHERE id=" + weightId);
+                    localCapturePicture(weightId + ".jpg");
                 }
                 weightId = null;
                 clearFields();
@@ -462,8 +475,8 @@ public class MainForm extends BaseForm {
             }
 
             JOptionPane.showMessageDialog(null, "Автомобил рақамини киритинг", "Хатолик", JOptionPane.ERROR_MESSAGE);
-        } catch (SQLException var7) {
-            var7.printStackTrace();
+        } catch (SQLException e) {
+            log.error(Arrays.toString(e.getStackTrace()));
         } finally {
             getData();
         }
@@ -499,18 +512,15 @@ public class MainForm extends BaseForm {
                         sumWeight = clearedString;
                     }
                 }
-            } catch (Exception var4) {
-                System.err.println(var4);
+            } catch (Exception e) {
+                log.error(Arrays.toString(e.getStackTrace()));
             }
         }
 
     }
 
     private Integer clearString(String inputLine) {
-        inputLine = inputLine.replaceAll("\\+", "").substring(0, 7);
-        System.out.println(inputLine);
-        Pattern pattern = Pattern.compile("[-+]?([0-9]*\\.[0-9]+|[0-9]+)");
-        Matcher m = pattern.matcher(inputLine);
-        return m.find() ? Integer.parseInt(m.group()) : 0;
+        inputLine = inputLine.replaceAll("=", "").replaceAll("\\(", "").replaceAll("\\)", "").replaceAll("kg", "");
+        return Integer.parseInt(inputLine);
     }
 }

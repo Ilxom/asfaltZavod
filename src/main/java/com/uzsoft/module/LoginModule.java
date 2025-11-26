@@ -6,8 +6,8 @@ import com.uzsoft.netsdk.lib.NetSDKLib;
 public class LoginModule {
 
 	public static NetSDKLib netsdk 		= NetSDKLib.NETSDK_INSTANCE;
-	private NetSDKLib.NET_DEVICEINFO_Ex m_stDeviceInfo = new NetSDKLib.NET_DEVICEINFO_Ex();
-	private NetSDKLib.LLong m_hLoginHandle = new NetSDKLib.LLong(0);
+	public static NetSDKLib.NET_DEVICEINFO_Ex m_stDeviceInfo = new NetSDKLib.NET_DEVICEINFO_Ex();
+	public static NetSDKLib.LLong m_hLoginHandle = new NetSDKLib.LLong(0);
 	private static boolean bInit    = false;
 	private static boolean bLogopen = false;
 
