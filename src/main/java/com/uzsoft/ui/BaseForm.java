@@ -14,11 +14,11 @@ import java.awt.*;
 public abstract class BaseForm extends JFrame {
 
     protected String[] columnNames;
-    protected GridBagConstraints gbc;
+    protected GridLayout gbc;
 
     public BaseForm(String[] columnNames) throws HeadlessException {
         this.columnNames = columnNames;
-        this.gbc = new GridBagConstraints();
+        this.gbc = new GridLayout();
         initialize();
     }
 

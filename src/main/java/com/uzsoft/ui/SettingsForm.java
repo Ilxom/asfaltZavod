@@ -7,6 +7,7 @@ import jssc.SerialPortList;
 import com.uzsoft.utils.Res;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -35,53 +36,34 @@ public class SettingsForm extends JFrame implements Constants {
     private JButton camera2SaveButton;
     private JButton saveClientButton, saveProductButton;
     private JButton saveCarButton;
-    GridBagLayout gridBagLayout = new GridBagLayout();
 
     private static final Font font12Bold = new Font("Arial", Font.BOLD, 12);
     private static final Font font14Bold = new Font("Arial", Font.BOLD, 14);
 
     public SettingsForm(MainForm mainForm) {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        JPanel mainPanel = new JPanel(gridBagLayout);
-        gbc.gridy = 0;
+        GridLayout gbc = new GridLayout(4, 2, 5, 5);
+        JPanel mainPanel = new JPanel(gbc);
+        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
         JPanel comPanel = createCOMPanel();
-        gbc.gridx = 0;
-        gridBagLayout.setConstraints(comPanel, gbc);
         mainPanel.add(comPanel);
 
         JPanel userPanel = createUserPanel();
-        gbc.gridx = 1;
-        gridBagLayout.setConstraints(userPanel, gbc);
         mainPanel.add(userPanel);
 
         JPanel camera1Panel = createCameraPanel(Res.localize("CAMERA1"), "camera1");
-        gbc.gridy = 1;
-        gbc.gridx = 0;
-        gridBagLayout.setConstraints(camera1Panel, gbc);
         mainPanel.add(camera1Panel);
 
         JPanel camera2Panel = createCameraPanel(Res.localize("CAMERA2"), "camera2");
-        gbc.gridx = 1;
-        gridBagLayout.setConstraints(camera2Panel, gbc);
         mainPanel.add(camera2Panel);
 
         JPanel clientPanel = createClientPanel();
-        gbc.gridy = 2;
-        gbc.gridx = 0;
-        gridBagLayout.setConstraints(clientPanel, gbc);
         mainPanel.add(clientPanel);
 
         JPanel carsPanel = createCarsPanel();
-        gbc.gridx = 1;
-        gridBagLayout.setConstraints(carsPanel, gbc);
         mainPanel.add(carsPanel);
 
         JPanel productPanel = createProductPanel();
-        gbc.gridy = 3;
-        gbc.gridx = 0;
-        gridBagLayout.setConstraints(productPanel, gbc);
         mainPanel.add(productPanel);
 
         setTitle(Res.string().getSettings());
@@ -400,7 +382,7 @@ public class SettingsForm extends JFrame implements Constants {
 
         JPanel panel = new JPanel(gridBagLayout);
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), title));
-        panel.setPreferredSize(new Dimension(400, 250));
+        panel.setPreferredSize(new Dimension(400, 300));
 
         // IP address label
         JLabel ipLabel = new JLabel(Res.string().getDeviceIp());
@@ -550,11 +532,31 @@ public class SettingsForm extends JFrame implements Constants {
         panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), Res.localize("CARS")));
         panel.setPreferredSize(new Dimension(300, 130));
 
-        UIUtil.createLabel(panel, gridBagLayout, gbc, Res.localize("CAR_NUMBER"), 0, 0, 100, 30, SwingConstants.LEFT, font12Bold, null);
-        carNumber = UIUtil.createTextBox(panel, gridBagLayout, gbc, 1, 0, 200, 30, SwingConstants.LEFT, "carNumber");
+        JLabel comLabel = new JLabel(Res.localize("CAR_NUMBER"));
+        comLabel.setFont(font12Bold);
+        gbc.gridy = 0;
+        gbc.gridx = 0;
+        gridBagLayout.setConstraints(comLabel, gbc);
+        panel.add(comLabel);
 
-        UIUtil.createLabel(panel, gridBagLayout, gbc, Res.localize("CAR_MODEL"), 0, 1, 100, 30, SwingConstants.LEFT, font12Bold, null);
-        carModel = UIUtil.createTextBox(panel, gridBagLayout, gbc, 1, 1, 200, 30, SwingConstants.LEFT, "carModel");
+        carNumber = new JTextField();
+        carNumber.setPreferredSize(new Dimension(200, 30));
+        gbc.gridx = 1;
+        gridBagLayout.setConstraints(carNumber, gbc);
+        panel.add(carNumber);
+
+        JLabel carModelLabel = new JLabel(Res.localize("CAR_MODEL"));
+        carModelLabel.setFont(font12Bold);
+        gbc.gridy = 1;
+        gbc.gridx = 0;
+        gridBagLayout.setConstraints(carModelLabel, gbc);
+        panel.add(carModelLabel);
+
+        carModel = new JTextField();
+        carModel.setPreferredSize(new Dimension(200, 30));
+        gbc.gridx = 1;
+        gridBagLayout.setConstraints(carModel, gbc);
+        panel.add(carModel);
 
         saveCarButton = new JButton(Res.string().getSave());
         saveCarButton.setFont(font14Bold);

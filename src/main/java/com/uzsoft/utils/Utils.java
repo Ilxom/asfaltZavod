@@ -208,8 +208,8 @@ public class Utils {
                 });
             }
 
-            addImage(document, weightId, "cameraImage1");
-            addImage(document, weightId, "cameraImage2");
+//            addImage(document, weightId, "cameraImage1");
+//            addImage(document, weightId, "cameraImage2");
 
             FileOutputStream outputStream = new FileOutputStream(reportFolder + weightId + ".docx");
             document.write(outputStream);

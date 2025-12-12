@@ -69,29 +69,19 @@ public class ReportForm extends BaseForm {
         JDatePanelImpl datePanel2 = new JDatePanelImpl(new UtilDateModel(new Date()), properties);
         datePicker2 = new JDatePickerImpl(datePanel2, new DateComponentFormatter());
 
-        gbc.fill = 2;
-        gbc.gridx = 0;
-        gbc.gridy = 0;
         if ("uz".equals(Res.getBundle().getLocale().getLanguage())) {
-            this.topToolBox.add(this.datePicker1, gbc);
-            gbc.gridx = 1;
-            this.topToolBox.add(new Label(Res.localize("FROM")), gbc);
-            gbc.gridx = 2;
-            this.topToolBox.add(this.datePicker2, gbc);
-            gbc.gridx = 3;
-            this.topToolBox.add(new Label(Res.localize("TO")), gbc);
+            this.topToolBox.add(this.datePicker1);
+            this.topToolBox.add(new Label(Res.localize("FROM")));
+            this.topToolBox.add(this.datePicker2);
+            this.topToolBox.add(new Label(Res.localize("TO")));
         } else {
-            this.topToolBox.add(new Label(Res.localize("FROM")), gbc);
-            gbc.gridx = 1;
-            this.topToolBox.add(this.datePicker1, gbc);
-            gbc.gridx = 2;
-            this.topToolBox.add(new Label(Res.localize("TO")), gbc);
-            gbc.gridx = 3;
-            this.topToolBox.add(this.datePicker2, gbc);
+            this.topToolBox.add(new Label(Res.localize("FROM")));
+            this.topToolBox.add(this.datePicker1);
+            this.topToolBox.add(new Label(Res.localize("TO")));
+            this.topToolBox.add(this.datePicker2);
         }
         Button okButton = getButton();
-        gbc.gridx = 4;
-        this.topToolBox.add(okButton, gbc);
+        this.topToolBox.add(okButton);
         Button excelButton = new Button("Excel");
         excelButton.addActionListener((ActionEvent e) -> {
             Date startDate = (Date)datePicker1.getModel().getValue();
@@ -102,16 +92,15 @@ public class ReportForm extends BaseForm {
             this.endDate = Utils.formatDate2(endDate);
             Utils.exportSummaryReportToToExcel(this.startDate, this.endDate, columnNames);
         });
-        gbc.gridx = 5;
-        this.topToolBox.add(excelButton, gbc);
+        this.topToolBox.add(excelButton);
 
         showData();
     }
 
     private void createTopToolBox() {
         topToolBox = new JPanel();
-        topToolBox.setPreferredSize(new Dimension(300, 30));
-        topToolBox.setLayout(new GridBagLayout());
+        topToolBox.setPreferredSize(new Dimension(300, 40));
+        topToolBox.setLayout(new FlowLayout(FlowLayout.CENTER, 20, 10));
 
         mainPanel. add(topToolBox, BorderLayout. NORTH);
     }

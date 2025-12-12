@@ -79,19 +79,19 @@ public class MainForm extends BaseForm {
     @Override
     protected void initialize() {
         sumWeight = 0;
-        GridBagLayout gridBagLayout = new GridBagLayout();
+        GridLayout gridBagLayout = new GridLayout();
         getSettings();
         setTitle(Res.string().getElectronWeight());
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setDefaultLookAndFeelDecorated(true);
-        initMainPanel(gridBagLayout);
+        initMainPanel();
         setContentPane(mainPanel);
-        setPreferredSize(new Dimension(1200, 1000));
-        setMinimumSize(new Dimension(1200, 1000));
+        setPreferredSize(new Dimension(1200, 900));
+        setMinimumSize(new Dimension(1200, 900));
         setLocationRelativeTo(null);
         setVisible(true);
         pack();
-        initializeVideoPanel(gridBagLayout);
+//        initializeVideoPanel(gridBagLayout);
         initializeReportTable(gridBagLayout);
 
         addWindowListener(new WindowAdapter() {
@@ -169,28 +169,29 @@ public class MainForm extends BaseForm {
         }
     }
 
-    private void initMainPanel(GridBagLayout gridBagLayout) {
-        int y = 0;
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-        gbc.gridy = y;
-        gbc.gridx = 0;
-        gbc.insets = new Insets(2,2,2,2);
-
-        mainPanel = new JPanel(gridBagLayout);
+    private void initMainPanel() {
+        GridLayout gridBagLayout = new GridLayout(10, 2, 2, 2);
+        gridBagLayout.setHgap(10);
+        mainPanel = new JPanel();
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        createLabel(mainPanel, gridBagLayout, gbc, Res.string().getScaleIndicator(), 0, y, SwingConstants.LEFT, false, null);
+        JPanel componentsPanel = new JPanel(gridBagLayout);
+        componentsPanel.setPreferredSize(new Dimension(1100, 400));
+        componentsPanel.setMinimumSize(new Dimension(1100, 400));
+        componentsPanel.setMaximumSize(new Dimension(1100, 400));
+
+        createLabel(componentsPanel, gridBagLayout, Res.string().getScaleIndicator(), 1, 1, SwingConstants.LEFT, false, null);
         if (Utils.testMode) {
-            weightBox = createTextBox(mainPanel, gridBagLayout, gbc, 1, y++, "weightBox");
+            weightBox = createTextBox(componentsPanel, gridBagLayout, 2, 1, "weightBox");
         } else {
-            weightLabel = createLabel(mainPanel, gridBagLayout, gbc, "0", 30, 1, y++, SwingConstants.CENTER, true, "weightLabel");
+            weightLabel = createLabel(componentsPanel, gridBagLayout, "0", 30, 2, 1, SwingConstants.CENTER, true, "weightLabel");
         }
 
-        createLabel(mainPanel, gridBagLayout, gbc, Res.string().getDirection(), 0, y, SwingConstants.LEFT, false, null);
-        direction = createCombobox(mainPanel, gridBagLayout, gbc, new String[]{"ТАРА","БРУТТО"}, 1, y++, "direction");
+        createLabel(componentsPanel, gridBagLayout, Res.string().getDirection(), 1, 2, SwingConstants.LEFT, false, null);
+        direction = createCombobox(componentsPanel, gridBagLayout, new String[]{"ТАРА","БРУТТО"}, 2, 2, "direction");
 
-        createLabel(mainPanel, gridBagLayout, gbc, Res.string().getCarNumber(), 0, y, SwingConstants.LEFT, false, null);
-        carNumberBox = createCombobox(mainPanel, gridBagLayout, gbc, new String[]{}, 1, y++, "carNumberLabel");
+        createLabel(componentsPanel, gridBagLayout, Res.string().getCarNumber(), 1, 3, SwingConstants.LEFT, false, null);
+        carNumberBox = createCombobox(componentsPanel, gridBagLayout, new String[]{}, 2, 3, "carNumberLabel");
         carNumberBox.setBorder(new BevelBorder(BevelBorder.RAISED));
         fetchCars();
         carNumberBox.addItemListener(itemEvent -> {
@@ -205,33 +206,33 @@ public class MainForm extends BaseForm {
             }
         });
 
-        createLabel(mainPanel, gridBagLayout, gbc, Res.string().getCarModel(), 0, y, SwingConstants.LEFT, false, null);
-        carModelBox = createTextBox(mainPanel, gridBagLayout, gbc, 1, y++, "carModelLabel");
+        createLabel(componentsPanel, gridBagLayout, Res.string().getCarModel(), 1, 4, SwingConstants.LEFT, false, null);
+        carModelBox = createTextBox(componentsPanel, gridBagLayout, 2, 4, "carModelLabel");
         carModelBox.setBorder(new BevelBorder(BevelBorder.RAISED));
         carModelBox.setEnabled(false);
 
-        createLabel(mainPanel, gridBagLayout, gbc, Res.string().getProductName(), 0, y, SwingConstants.LEFT, false, null);
-        productName = createCombobox(mainPanel, gridBagLayout, gbc, products.toArray(new String[]{}), 1, y++, "productName");
+        createLabel(componentsPanel, gridBagLayout, Res.string().getProductName(), 1, 5, SwingConstants.LEFT, false, null);
+        productName = createCombobox(componentsPanel, gridBagLayout, products.toArray(new String[]{}), 2, 5, "productName");
         fetchProducts();
 
-        createLabel(mainPanel, gridBagLayout, gbc, Res.string().getSender(), 0, y, SwingConstants.LEFT, false, null);
-        sender = createTextBox(mainPanel, gridBagLayout, gbc, 1, y++, "sender");
+        createLabel(componentsPanel, gridBagLayout, Res.string().getSender(), 1, 6, SwingConstants.LEFT, false, null);
+        sender = createTextBox(componentsPanel, gridBagLayout, 2, 6, "sender");
 
-        createLabel(mainPanel, gridBagLayout, gbc, Res.string().getReceiver(), 0, y, SwingConstants.LEFT, false, null);
-        receiver = createCombobox(mainPanel, gridBagLayout, gbc, clients.toArray(new String[]{}), 1, y++, "receiver");
+        createLabel(componentsPanel, gridBagLayout, Res.string().getReceiver(), 1, 7, SwingConstants.LEFT, false, null);
+        receiver = createCombobox(componentsPanel, gridBagLayout, clients.toArray(new String[]{}), 2, 7, "receiver");
         fetchClients();
 
-        createLabel(mainPanel, gridBagLayout, gbc, Res.string().getCarDriver(), 0, y, SwingConstants.LEFT, false, null);
-        carDriver = createTextBox(mainPanel, gridBagLayout, gbc, 1, y++, "carDriver");
+        createLabel(componentsPanel, gridBagLayout, Res.string().getCarDriver(), 1, 8, SwingConstants.LEFT, false, null);
+        carDriver = createTextBox(componentsPanel, gridBagLayout, 2, 8, "carDriver");
 
-        createLabel(mainPanel, gridBagLayout, gbc, Res.string().getOperator(), 0, y, SwingConstants.LEFT, false, null);
-        operator = createTextBox(mainPanel, gridBagLayout, gbc, 1, y++, "operator");
+        createLabel(componentsPanel, gridBagLayout, Res.string().getOperator(), 1, 9, SwingConstants.LEFT, false, null);
+        operator = createTextBox(componentsPanel, gridBagLayout, 2, 9, "operator");
 
         currentDateTime = new JLabel();
         currentDateTime.setFont(new Font("times", Font.BOLD, 16));
         currentDateTime.setPreferredSize(new Dimension(200, 40));
         currentDateTime.setMinimumSize(new Dimension(200, 40));
-        createWidget(mainPanel, gridBagLayout, gbc, currentDateTime, 0, y);
+        createWidget(componentsPanel, gridBagLayout, currentDateTime, 1, 10);
 
         int interval = 1000;
         new Timer(interval, (e) -> {
@@ -241,6 +242,7 @@ public class MainForm extends BaseForm {
         }).start();
 
         JPanel buttonsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonsPanel.setSize(new Dimension(1200, 50));
 
         JButton clearButton = new JButton(Res.string().getClear());
         clearButton.addActionListener((e) -> {
@@ -268,16 +270,16 @@ public class MainForm extends BaseForm {
             buttonsPanel.add(settingsButton);
         }
 
-        gbc.gridy = y;
-        gbc.gridx = 1;
-        gridBagLayout.setConstraints(buttonsPanel, gbc);
+        BoxLayout gridBagLayout2 = new BoxLayout(mainPanel, BoxLayout.Y_AXIS);
+//        mainPanel.setLayout(gridBagLayout2);
+        mainPanel.add(componentsPanel);
         mainPanel.add(buttonsPanel);
     }
 
-    private void initializeReportTable(GridBagLayout gridBagLayout) {
+    private void initializeReportTable(GridLayout gridBagLayout) {
         reportTable = new JTable();
-        reportTable.setMinimumSize(new Dimension(600, 200));
-        reportTable.setPreferredSize(new Dimension(600, 200));
+        reportTable.setMinimumSize(new Dimension(1200, 400));
+        reportTable.setPreferredSize(new Dimension(1200, 400));
         reportTable.setAutoResizeMode(JTable.AUTO_RESIZE_ALL_COLUMNS);
         reportTable.setCellSelectionEnabled(false);
         reportTable.setColumnSelectionAllowed(false);
@@ -308,14 +310,9 @@ public class MainForm extends BaseForm {
         JScrollPane scrollPane = new JScrollPane(reportTable,
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
                 JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-        scrollPane.setMinimumSize(new Dimension(1200, 200));
-        scrollPane.setPreferredSize(new Dimension(1200, 200));
+        scrollPane.setMinimumSize(new Dimension(1200, 400));
+        scrollPane.setPreferredSize(new Dimension(1200, 400));
 
-        gbc.gridy = 10;
-        gbc.gridx = 0;
-        gbc.gridwidth = cameraCount > 0 ? 3 : 2;
-        gbc.gridheight = 2;
-        gridBagLayout.setConstraints(scrollPane, gbc);
         mainPanel.add(scrollPane);
         getData();
     }
@@ -337,7 +334,7 @@ public class MainForm extends BaseForm {
         }
     }
 
-    private void initializeVideoPanel(GridBagLayout gridBagLayout) {
+    private void initializeVideoPanel(GridLayout gridBagLayout) {
         if (cameraCount > 0) {
             GridLayout gbc8 = new GridLayout(cameraCount, 2);
             gbc8.setHgap(10);
@@ -346,10 +343,7 @@ public class MainForm extends BaseForm {
             videoPanel.setMinimumSize(new Dimension(533, 400));
             videoPanel.setPreferredSize(new Dimension(533, 400));
 
-            gbc.gridy = 0;
-            gbc.gridx = 2;
-            gbc.gridheight = 9;
-            gridBagLayout.setConstraints(videoPanel, gbc);
+//            gridBagLayout.setConstraints(videoPanel);
             mainPanel.add(videoPanel);
 
             if (camera1IsEnabled) {

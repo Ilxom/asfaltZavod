@@ -7,31 +7,30 @@ public class UIUtil {
 
     private static final Font font40Bold = new Font("times", Font.BOLD, 40);
 
-    public static void createWidget(JPanel mainPanel, GridBagLayout gridBagLayout, GridBagConstraints gbc, JComponent component, int x, int y) {
-        gbc.gridy = y;
-        gbc.gridx = x;
+    public static void createWidget(JPanel mainPanel, GridLayout gridBagLayout, JComponent component, int x, int y) {
+//        gridBagLayout.setRows(y);
+//        gridBagLayout.setColumns(x);
         component.setMinimumSize(new Dimension(100, 40));
         component.setPreferredSize(new Dimension(200, 40));
         component.setMaximumSize(new Dimension(200, 40));
-        gridBagLayout.setConstraints(component, gbc);
         mainPanel.add(component);
     }
 
-    public static void createWidget(JPanel mainPanel, GridBagLayout gridBagLayout, GridBagConstraints gbc, JComponent component, int x, int y,
+    public static void createWidget(JPanel mainPanel, GridLayout gridBagLayout, JComponent component, int x, int y,
                                     int width, int height) {
-        gbc.gridy = y;
-        gbc.gridx = x;
+//        gridBagLayout.setRows(y);
+//        gridBagLayout.setColumns(x);
         component.setPreferredSize(new Dimension(width, height));
-        gridBagLayout.setConstraints(component, gbc);
+//        gridBagLayout.setConstraints(component, gbc);
         mainPanel.add(component);
     }
 
-    public static JLabel createLabel(JPanel mainPanel, GridBagLayout gridBagLayout, GridBagConstraints gbc, String labelText,
+    public static JLabel createLabel(JPanel mainPanel, GridLayout gridBagLayout, String labelText,
                                int x, int y, int horizontalAlignment, boolean useBoldFont, String componentName) {
-        return createLabel(mainPanel, gridBagLayout, gbc, labelText, 14, x, y, horizontalAlignment, useBoldFont, componentName);
+        return createLabel(mainPanel, gridBagLayout, labelText, 14, x, y, horizontalAlignment, useBoldFont, componentName);
     }
 
-    public static JLabel createLabel(JPanel mainPanel, GridBagLayout gridBagLayout, GridBagConstraints gbc, String labelText,
+    public static JLabel createLabel(JPanel mainPanel, GridLayout gridBagLayout, String labelText,
                                int labelFontSize, int x, int y, int horizontalAlignment, boolean useBoldFont, String componentName) {
         JLabel label = new JLabel(labelText);
         label.setName(componentName);
@@ -44,38 +43,38 @@ public class UIUtil {
         } else {
             label.setFont(new Font("times", Font.BOLD, labelFontSize));
         }
-        createWidget(mainPanel, gridBagLayout, gbc, label, x, y);
+        createWidget(mainPanel, gridBagLayout, label, x, y);
         return label;
     }
 
-    public static JLabel createLabel(JPanel mainPanel, GridBagLayout gridBagLayout, GridBagConstraints gbc, String labelText,
-                               int x, int y, int width, int height, int horizontalAlignment, Font font, String componentName) {
+    public static void createLabel(JPanel mainPanel, GridLayout gridBagLayout, String labelText,
+                                   int x, int y, int width, int height, Font font, String componentName) {
         JLabel label = new JLabel(labelText);
         label.setName(componentName);
         label.setFont(font);
-        createWidget(mainPanel, gridBagLayout, gbc, label, x, y, width, height);
-        return label;
+        createWidget(mainPanel, gridBagLayout, label, x, y, width, height);
     }
 
-    public static JTextField createTextBox(JPanel mainPanel, GridBagLayout gridBagLayout, GridBagConstraints gbc, int x, int y, String componentName) {
+    public static JTextField createTextBox(JPanel mainPanel, GridLayout gridBagLayout, int x, int y, String componentName) {
         JTextField textField = new JTextField();
         textField.setName(componentName);
-        createWidget(mainPanel, gridBagLayout, gbc, textField, x, y);
+        textField.setFont(new Font("times", Font.BOLD, 16));
+        createWidget(mainPanel, gridBagLayout, textField, x, y);
         return textField;
     }
 
-    public static JTextField createTextBox(JPanel mainPanel, GridBagLayout gridBagLayout, GridBagConstraints gbc, int x, int y,
-                                           int width, int height, int horizontalAlignment, String componentName) {
+    public static JTextField createTextBox(JPanel mainPanel, GridLayout gridBagLayout, int x, int y,
+                                           int width, int height, String componentName) {
         JTextField textField = new JTextField();
         textField.setName(componentName);
-        createWidget(mainPanel, gridBagLayout, gbc, textField, x, y, width, height);
+        createWidget(mainPanel, gridBagLayout, textField, x, y, width, height);
         return textField;
     }
 
-    public static JComboBox<String> createCombobox(JPanel mainPanel, GridBagLayout layout, GridBagConstraints gbc, String[] items, int x, int y, String componentName) {
+    public static JComboBox<String> createCombobox(JPanel mainPanel, GridLayout layout, String[] items, int x, int y, String componentName) {
         JComboBox<String> comboBox = new JComboBox<>(items);
         comboBox.setName(componentName);
-        createWidget(mainPanel, layout, gbc, comboBox, x, y);
+        createWidget(mainPanel, layout, comboBox, x, y);
         return comboBox;
     }
 }

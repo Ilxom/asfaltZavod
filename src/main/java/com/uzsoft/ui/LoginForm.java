@@ -34,7 +34,7 @@ public class LoginForm extends JFrame {
 
     LoginForm() {
         String[] languages = new String[]{"Ўзбек", "Русский", "English"};
-        Res.switchLanguage(Res.LanguageType.Russian);
+        Res.switchLanguage(Res.LanguageType.Uzbek);
 
         mainPanel.setSize(500, 400);
         mainPanel.setLayout(gridBagLayout);
@@ -47,14 +47,16 @@ public class LoginForm extends JFrame {
         loginPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
         loginPanel.setBackground(Color.WHITE);
 
-        JLabel loginLabel = createLabel(loginPanel, gridBagLayout, gbc, Res.string().getUserName(), 0, 0, SwingConstants.LEFT, false, null);
-        loginBox = createTextBox(loginPanel, gridBagLayout, gbc, 1, 0, "loginBox");
+        JLabel loginLabel = createLabel(loginPanel, gbc8, Res.string().getUserName(), 1, 1, SwingConstants.LEFT, false, null);
+        loginBox = createTextBox(loginPanel, gbc8, 2, 1, "loginBox");
+        loginBox.setText("admin");
 
-        JLabel passwordLabel = createLabel(loginPanel, gridBagLayout, gbc, Res.string().getPassword(), 0, 1, SwingConstants.LEFT, false, null);
+        JLabel passwordLabel = createLabel(loginPanel, gbc8, Res.string().getPassword(), 1, 2, SwingConstants.LEFT, false, null);
         passwordBox = new JPasswordField();
-        createWidget(loginPanel, gridBagLayout, gbc, passwordBox, 1, 1);
+        passwordBox.setText("1");
+        createWidget(loginPanel, gbc8, passwordBox, 2, 2);
 
-        JLabel languageLabel = createLabel(loginPanel, gridBagLayout, gbc, Res.string().getLanguage(), 0, 2, SwingConstants.LEFT, false, null);
+        JLabel languageLabel = createLabel(loginPanel, gbc8, Res.string().getLanguage(), 1, 3, SwingConstants.LEFT, false, null);
 
         languageBox = new JComboBox<>(languages);
         languageBox.addItemListener(arg0 -> {
@@ -68,15 +70,15 @@ public class LoginForm extends JFrame {
             setTitle(Res.string().getElectronWeight());
         });
 
-        createWidget(loginPanel, gridBagLayout, gbc, languageBox, 1, 2);
+        createWidget(loginPanel, gbc8, languageBox, 2, 3);
 
-        createLabel(loginPanel, gridBagLayout, gbc, "", 0, 3, SwingConstants.LEFT, false, null);
+        createLabel(loginPanel, gbc8, "", 1, 4, SwingConstants.LEFT, false, null);
         loginButton = new JButton(Res.string().getLogin());
-        createWidget(loginPanel, gridBagLayout, gbc, loginButton, 1, 3);
+        createWidget(loginPanel, gbc8, loginButton, 2, 4);
 
         mainPanel.add(loginPanel);
 
-        languageBox.setSelectedItem("Русский");
+        languageBox.setSelectedItem(Res.LanguageType.Uzbek);
         setTitle(Res.string().getElectronWeight());
         setPreferredSize(new Dimension(600, 430));
         setMinimumSize(new Dimension(600, 430));
