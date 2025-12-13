@@ -57,8 +57,9 @@ public class MainForm extends BaseForm {
     private JTextField carModelBox;
     private SerialPort serialPort;
     private Integer weightId = null;
-    private Integer sumWeight;
+    private Float sumWeight;
     private String comPortName;
+    private String eWeight;
     private Integer comPortSpeed;
     private String camera1UserName, camera1Password;
     private String camera2UserName, camera2Password;
@@ -78,7 +79,7 @@ public class MainForm extends BaseForm {
 
     @Override
     protected void initialize() {
-        sumWeight = 0;
+        sumWeight = 0f;
         GridLayout gridBagLayout = new GridLayout();
         getSettings();
         setTitle(Res.string().getElectronWeight());
@@ -431,13 +432,13 @@ public class MainForm extends BaseForm {
         sender.setText("");
         carDriver.setText("");
         weightId = null;
-        sumWeight = 0;
+        sumWeight = 0f;
     }
 
     private void saveData() {
         try {
             if (carNumberBox.getSelectedItem() != null && !Objects.equals(carNumberBox.getSelectedItem(), "")) {
-                sumWeight = Integer.parseInt(Utils.testMode ? weightBox.getText() : weightLabel.getText());
+                sumWeight = Float.parseFloat(Utils.testMode ? weightBox.getText() : weightLabel.getText());
                 Statement statement = Utils.getStatement();
 
                 String sql = "", weighingType = (String) direction.getSelectedItem();
@@ -491,20 +492,18 @@ public class MainForm extends BaseForm {
     }
 
     private synchronized void serialEvent(SerialPortEvent oEvent) {
-        if (oEvent.isRXCHAR() && oEvent.getEventValue() > 0) {
+        if (oEvent.isRXCHAR()) {
             try {
-                byte[] bytes = serialPort.readBytes();
-                if (bytes != null) {
-                    String inputLine = new String(bytes, StandardCharsets.UTF_8);
-                    if (!inputLine.trim().isEmpty()) {
-                        Integer clearedString = clearString(inputLine);
-                        if (Utils.testMode) {
-                            weightBox.setText(String.valueOf(clearedString));
-                        } else {
-                            weightLabel.setText(String.valueOf(clearedString));
-                        }
-                        sumWeight = clearedString;
-                    }
+                String bytes = serialPort.readString();
+                eWeight = eWeight + bytes;
+                if ("=".equals(bytes)) {
+                    eWeight = "";
+                } else if (")".equals(bytes)) {
+                    System.out.println("TOTAL WEIGHT: " + eWeight);
+                    Float clearedString = clearString(eWeight);
+                    weightLabel.setText(clearedString.toString());
+                    sumWeight = clearedString;
+                    eWeight = "";
                 }
             } catch (Exception e) {
                 log.error(Arrays.toString(e.getStackTrace()));
@@ -513,8 +512,10 @@ public class MainForm extends BaseForm {
 
     }
 
-    private Integer clearString(String inputLine) {
-        inputLine = inputLine.replaceAll("=", "").replaceAll("\\(", "").replaceAll("\\)", "").replaceAll("kg", "");
-        return Integer.parseInt(inputLine);
+    private Float clearString(String inputLine) {
+        inputLine = inputLine.replaceAll("\r", "").replaceAll("\n", "")
+                .replaceAll("=", "").replaceAll("\\(", "")
+                .replaceAll("\\)", "").replaceAll("kg", "");
+        return Float.parseFloat(inputLine);
     }
 }
