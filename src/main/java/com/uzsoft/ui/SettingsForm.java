@@ -1,10 +1,9 @@
 package com.uzsoft.ui;
 
 import com.uzsoft.Constants;
-import com.uzsoft.utils.UIUtil;
+import com.uzsoft.utils.Res;
 import com.uzsoft.utils.Utils;
 import jssc.SerialPortList;
-import com.uzsoft.utils.Res;
 
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
@@ -15,7 +14,9 @@ import java.sql.Statement;
 import java.util.Arrays;
 
 public class SettingsForm extends JFrame implements Constants {
+    private JComboBox<String> deviceListBox;
     private JComboBox<String> comListBox;
+    private JButton saveDeviceButton;
     private JButton saveCOMButton;
     private JPasswordField oldPassword;
     private JPasswordField repeatPassword;
@@ -45,26 +46,14 @@ public class SettingsForm extends JFrame implements Constants {
         JPanel mainPanel = new JPanel(gbc);
         mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JPanel comPanel = createCOMPanel();
-        mainPanel.add(comPanel);
-
-        JPanel userPanel = createUserPanel();
-        mainPanel.add(userPanel);
-
-        JPanel camera1Panel = createCameraPanel(Res.localize("CAMERA1"), "camera1");
-        mainPanel.add(camera1Panel);
-
-        JPanel camera2Panel = createCameraPanel(Res.localize("CAMERA2"), "camera2");
-        mainPanel.add(camera2Panel);
-
-        JPanel clientPanel = createClientPanel();
-        mainPanel.add(clientPanel);
-
-        JPanel carsPanel = createCarsPanel();
-        mainPanel.add(carsPanel);
-
-        JPanel productPanel = createProductPanel();
-        mainPanel.add(productPanel);
+        mainPanel.add(createDevicePanel());
+        mainPanel.add(createCOMPanel());
+        mainPanel.add(createUserPanel());
+        mainPanel.add(createCameraPanel(Res.localize("CAMERA1"), "camera1"));
+        mainPanel.add(createCameraPanel(Res.localize("CAMERA2"), "camera2"));
+        mainPanel.add(createClientPanel());
+        mainPanel.add(createCarsPanel());
+        mainPanel.add(createProductPanel());
 
         setTitle(Res.string().getSettings());
         setPreferredSize(new Dimension(1000, 700));
@@ -128,6 +117,21 @@ public class SettingsForm extends JFrame implements Constants {
                     JOptionPane.showMessageDialog(null, "COM порт созламаси сақланди", "Огохлантириш", JOptionPane.INFORMATION_MESSAGE);
                 } else {
                     JOptionPane.showMessageDialog(null, "COM порт созламасини сақлашда хатолик", "Хатолик", JOptionPane.ERROR_MESSAGE);
+                }
+                Utils.closeConnection();
+            } catch (SQLException ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        saveDeviceButton.addActionListener(e -> {
+            try {
+                String device = (String) deviceListBox.getSelectedItem();
+                int res1 = Utils.getStatement().executeUpdate("update settings set settingValue='" + device + "' WHERE settingKey='WEIGHT_DEVICE_TYPE'");
+                if (res1 > 0) {
+                    JOptionPane.showMessageDialog(null, "Тарози тури созламаси сақланди", "Огохлантириш", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(null, "Тарози тури созламасини сақлашда хатолик", "Хатолик", JOptionPane.ERROR_MESSAGE);
                 }
                 Utils.closeConnection();
             } catch (SQLException ex) {
@@ -258,6 +262,41 @@ public class SettingsForm extends JFrame implements Constants {
         });
     }
 
+    private JPanel createDevicePanel() {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        GridBagLayout gridBagLayout = new GridBagLayout();
+
+        JPanel panel = new JPanel(gridBagLayout);
+        panel.setBorder(BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), Res.localize("WEIGHT_DEVICE_TYPE")));
+        panel.setPreferredSize(new Dimension(300, 200));
+
+        // COM Port label
+        JLabel deviceLabel = new JLabel(Res.localize("WEIGHT_DEVICE_TYPE"));
+        deviceLabel.setFont(font12Bold);
+        gbc.gridy = 0;
+        gbc.gridx = 0;
+        gridBagLayout.setConstraints(deviceLabel, gbc);
+        panel.add(deviceLabel);
+
+        // Device combo box
+        deviceListBox = new JComboBox<>(new String[]{"KELI_XK3118", "CAS_200"});
+        deviceListBox.setPreferredSize(new Dimension(200, 30));
+        gbc.gridx = 1;
+        gridBagLayout.setConstraints(deviceListBox, gbc);
+        panel.add(deviceListBox);
+
+        // Save device button
+        saveDeviceButton = new JButton(Res.string().getSave());
+        saveDeviceButton.setFont(font14Bold);
+        gbc.gridy = 1;
+        gbc.gridx = 1;
+        gridBagLayout.setConstraints(saveDeviceButton, gbc);
+        panel.add(saveDeviceButton);
+
+        return panel;
+    }
+
     private JPanel createCOMPanel() {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.fill = GridBagConstraints.HORIZONTAL;
@@ -298,7 +337,7 @@ public class SettingsForm extends JFrame implements Constants {
 
         // Save COM button
         saveCOMButton = new JButton(Res.string().getSave());
-        saveCOMButton.setFont(new Font("Arial", Font.BOLD, 14));
+        saveCOMButton.setFont(font14Bold);
         gbc.gridy = 2;
         gbc.gridx = 1;
         gridBagLayout.setConstraints(saveCOMButton, gbc);
@@ -365,7 +404,7 @@ public class SettingsForm extends JFrame implements Constants {
         // Save Password button
         panel.add(new Label(""));
         updatePasswordButton = new JButton(Res.string().getSave());
-        updatePasswordButton.setFont(new Font("Arial", Font.BOLD, 14));
+        updatePasswordButton.setFont(font14Bold);
         gbc.gridy = 3;
         gbc.gridx = 1;
         gridBagLayout.setConstraints(updatePasswordButton, gbc);

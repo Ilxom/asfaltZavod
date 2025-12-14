@@ -61,6 +61,7 @@ public class MainForm extends BaseForm {
     private String comPortName;
     private String eWeight;
     private Integer comPortSpeed;
+    private String weightDeviceType;
     private String camera1UserName, camera1Password;
     private String camera2UserName, camera2Password;
     private String camera1IPAddress, camera2IPAddress;
@@ -138,6 +139,9 @@ public class MainForm extends BaseForm {
                     camera2UserName = rs.getString("settingValue");
                 } else if ("CAMERA2_PASSWORD".equals(rs.getString("settingKey"))) {
                     camera2Password = rs.getString("settingValue");
+                } else if ("WEIGHT_DEVICE_TYPE".equals(rs.getString("settingKey"))) {
+                    weightDeviceType = rs.getString("settingValue");
+                    Utils.weightDeviceType = weightDeviceType;
                 } else if ("COM_PORT_NAME".equals(rs.getString("settingKey"))) {
                     comPortName = rs.getString("settingValue");
                 } else if ("COM_PORT_SPEED".equals(rs.getString("settingKey"))) {
@@ -494,22 +498,23 @@ public class MainForm extends BaseForm {
     private synchronized void serialEvent(SerialPortEvent oEvent) {
         if (oEvent.isRXCHAR()) {
             try {
-                String bytes = serialPort.readString();
-                eWeight = eWeight + bytes;
-                if ("=".equals(bytes)) {
-                    eWeight = "";
-                } else if (")".equals(bytes)) {
-                    System.out.println("TOTAL WEIGHT: " + eWeight);
-                    Float clearedString = clearString(eWeight);
-                    weightLabel.setText(clearedString.toString());
-                    sumWeight = clearedString;
-                    eWeight = "";
+                if ("KELI_XK3118".equals(Utils.weightDeviceType)) {
+                    String bytes = serialPort.readString();
+                    eWeight = eWeight + bytes;
+                    if ("=".equals(bytes)) {
+                        eWeight = "";
+                    } else if (")".equals(bytes)) {
+                        System.out.println("TOTAL WEIGHT: " + eWeight);
+                        Float clearedString = clearString(eWeight);
+                        weightLabel.setText(clearedString.toString());
+                        sumWeight = clearedString;
+                        eWeight = "";
+                    }
                 }
             } catch (Exception e) {
                 log.error(Arrays.toString(e.getStackTrace()));
             }
         }
-
     }
 
     private Float clearString(String inputLine) {

@@ -32,6 +32,7 @@ public class Utils {
     private static Statement statement;
     public static String applicationFolder;
     public static String reportFolder;
+    public static String weightDeviceType;
     public static String userName;
     public static String userFullName;
     public static Boolean testMode = false;
