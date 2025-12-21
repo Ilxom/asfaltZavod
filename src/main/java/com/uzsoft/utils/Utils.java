@@ -209,8 +209,8 @@ public class Utils {
                 });
             }
 
-//            addImage(document, weightId, "cameraImage1");
-//            addImage(document, weightId, "cameraImage2");
+            addImage(document, weightId, "cameraImage1");
+            addImage(document, weightId, "cameraImage2");
 
             FileOutputStream outputStream = new FileOutputStream(reportFolder + weightId + ".docx");
             document.write(outputStream);
@@ -224,22 +224,28 @@ public class Utils {
     }
 
     private static void addImage(XWPFDocument document, Integer weightId, String imageName) {
-        try (FileInputStream imageStream = new FileInputStream(Constants.applicationFolder + "/files/images/" + weightId + ".jpg")) {
-            document.getParagraphs().forEach(paragraph -> {
-                paragraph.getRuns().forEach(run -> {
-                    if (imageName.equals(run.getText(0))) {
-                        try {
-                            run.setText(null, 0);
-                            run.addPicture(imageStream, XWPFDocument.PICTURE_TYPE_JPEG, "image.jpg", Units.toEMU(200), Units.toEMU(120)); // 200px width, 150px height
-                        } catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException | IOException e) {
-                            throw new RuntimeException(e);
+        boolean hasImage = new File(Constants.applicationFolder + "/files/images/" + weightId + ".jpg").exists();
+        document.getParagraphs().forEach(paragraph -> {
+            paragraph.getRuns().forEach(run -> {
+                if (imageName.equals(run.getText(0))) {
+                    try {
+                        if (hasImage) {
+                            try (FileInputStream imageStream = new FileInputStream(Constants.applicationFolder + "/files/images/" + weightId + ".jpg")) {
+                                run.setText(null, 0);
+                                run.addPicture(imageStream, XWPFDocument.PICTURE_TYPE_JPEG, "image.jpg", Units.toEMU(200), Units.toEMU(120)); // 200px width, 150px height
+                            } catch (IOException e) {
+                                log.error(Arrays.toString(e.getStackTrace()));
+                            }
+                        } else {
+                            String text = run.getText(0).replace(imageName, "");
+                            run.setText(text, 0);
                         }
+                    } catch (org.apache.poi.openxml4j.exceptions.InvalidFormatException e) {
+                        throw new RuntimeException(e);
                     }
-                });
+                }
             });
-        } catch (IOException e) {
-            log.error(Arrays.toString(e.getStackTrace()));
-        }
+        });
     }
 
     private static void createHeaderCell(XWPFTableRow tableRowOne, String text, int cellNumber) {

@@ -57,7 +57,7 @@ public class MainForm extends BaseForm {
     private JTextField carModelBox;
     private SerialPort serialPort;
     private Integer weightId = null;
-    private Float sumWeight;
+    private Integer sumWeight;
     private String comPortName;
     private String eWeight;
     private Integer comPortSpeed;
@@ -80,7 +80,7 @@ public class MainForm extends BaseForm {
 
     @Override
     protected void initialize() {
-        sumWeight = 0f;
+        sumWeight = 0;
         GridLayout gridBagLayout = new GridLayout();
         getSettings();
         setTitle(Res.string().getElectronWeight());
@@ -436,13 +436,13 @@ public class MainForm extends BaseForm {
         sender.setText("");
         carDriver.setText("");
         weightId = null;
-        sumWeight = 0f;
+        sumWeight = 0;
     }
 
     private void saveData() {
         try {
             if (carNumberBox.getSelectedItem() != null && !Objects.equals(carNumberBox.getSelectedItem(), "")) {
-                sumWeight = Float.parseFloat(Utils.testMode ? weightBox.getText() : weightLabel.getText());
+                sumWeight = Integer.parseInt(Utils.testMode ? weightBox.getText() : weightLabel.getText());
                 Statement statement = Utils.getStatement();
 
                 String sql = "", weighingType = (String) direction.getSelectedItem();
@@ -505,10 +505,22 @@ public class MainForm extends BaseForm {
                         eWeight = "";
                     } else if (")".equals(bytes)) {
                         System.out.println("TOTAL WEIGHT: " + eWeight);
-                        Float clearedString = clearString(eWeight);
+                        Integer clearedString = clearString(eWeight);
                         weightLabel.setText(clearedString.toString());
                         sumWeight = clearedString;
                         eWeight = "";
+                    }
+                } else if ("CAS_200".equals(Utils.weightDeviceType)) {
+                    byte[] bytes = this.serialPort.readBytes();
+                    if (bytes != null) {
+                        String inputLine = new String(bytes, StandardCharsets.UTF_8);
+                        if (!inputLine.trim().isEmpty()) {
+                            inputLine = inputLine.substring(0, 8);
+                            inputLine = inputLine.replaceAll("\\+", "");
+                            int result = Float.valueOf(inputLine).intValue();
+                            weightLabel.setText(Integer.toString(result));
+                            sumWeight = result;
+                        }
                     }
                 }
             } catch (Exception e) {
@@ -517,10 +529,10 @@ public class MainForm extends BaseForm {
         }
     }
 
-    private Float clearString(String inputLine) {
+    private Integer clearString(String inputLine) {
         inputLine = inputLine.replaceAll("\r", "").replaceAll("\n", "")
                 .replaceAll("=", "").replaceAll("\\(", "")
                 .replaceAll("\\)", "").replaceAll("kg", "");
-        return Float.parseFloat(inputLine);
+        return Integer.parseInt(inputLine);
     }
 }

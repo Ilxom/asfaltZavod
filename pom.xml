@@ -111,7 +111,7 @@
     </dependencies>
 
     <build>
-        <finalName>autoWeightClient</finalName>
+        <finalName>tarozi</finalName>
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
